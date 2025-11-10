@@ -1,11 +1,166 @@
+import { iconName } from './../../../../node_modules/@fortawesome/free-brands-svg-icons/fa500px.d';
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import {RouterLink} from '@angular/router'
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import { AuthService } from '../../core/services/auth.service';
+
 
 @Component({
   selector: 'app-navbar-user',
   standalone: true,
-  imports: [CommonModule],
-  template: ``,
-  styles: []
+  imports: [CommonModule, RouterLink, FaIconComponent],
+  template: `
+    <nav class="navbar-container">
+
+      <div class="navbar-left">
+        <a [routerLink]="['/']" class="logo-link">
+          <img src="/assets/images/logo.png" alt="Logo RecolectaEdu" class="logo-img">
+          <span>RecolectaEdu</span>
+        </a>
+      </div>
+
+      <div class="navbar-search">
+        <fa-icon [icon]="iconSearch" class="search-icon"></fa-icon>
+        <input type="text" placeholder="Busca documentos">
+      </div>
+
+      <div class="navbar-right">
+        <a [routerLink]="['/instituciones']" class="nav-link">Instituciones Educativas</a>
+
+        @if (authService.isAuthenticated()) {
+
+          <a [routerLink]="['/premium']" class="nav-link-premium">Premium</a>
+          <a [routerLink]="['/profile']" class="nav-link-user">Usuario</a>
+
+        } @else {
+
+          <a [routerLink]="['/auth/login']" class="btn btn-login">
+            Iniciar sesión
+          </a>
+        }
+      </div>
+
+    </nav>
+  `,
+  styles: [`
+    :host {
+      display: block;
+      width: 100%;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .navbar-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #240334;
+      color: #FFFFFF;
+      padding: 10px 40px;
+      height: 70px;
+    }
+
+    /* Lado Izquierdo */
+    .logo-link {
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+      color: #FFFFFF;
+      font-size: 24px;
+      font-weight: 700;
+    }
+    .logo-img {
+      height: 45px;
+      margin-right: 10px;
+    }
+
+    /* Centro */
+    .navbar-search {
+      position: relative;
+      flex-grow: 1;
+      max-width: 500px;
+      margin: 0 40px;
+    }
+    .search-icon {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #8A8A8A;
+    }
+    .navbar-search input {
+      width: 100%;
+      padding: 12px 20px 12px 45px;
+      border: none;
+      border-radius: 50px;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      background-color: #FFFFFF;
+    }
+
+    /* Derecho */
+    .navbar-right {
+      display: flex;
+      align-items: center;
+      gap: 30px;
+    }
+    .nav-link {
+      color: #FFFFFF;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+    .nav-link:hover {
+      text-decoration: underline;
+    }
+
+
+
+    /* VISTA LOGUEADA */
+    .nav-link-premium {
+      color: #FFFFFF;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .nav-link-premium:hover {
+      text-decoration: underline;
+    }
+
+    .nav-link-user {
+      color: #0D8EFF;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .nav-link-user:hover {
+      text-decoration: underline;
+    }
+
+    /* VISTA DESLOGUEADA (Botón) */
+    .btn {
+      padding: 10px 24px;
+      border: none;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-login {
+      background-color: #32CD32;
+      color: #FFFFFF;
+    }
+    .btn-login:hover {
+      background-color: #228B22;
+    }
+  `]
 })
-export class NavbarUserComponent {}
+export class NavbarUserComponent {
+  iconSearch = faSearch;
+  constructor(public authService: AuthService) {}
+}
