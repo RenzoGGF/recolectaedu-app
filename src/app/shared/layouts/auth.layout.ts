@@ -50,6 +50,10 @@ import { CardComponent } from '../components/card';
       z-index: 0;
     }
 
+    app-card {
+      position: relative;
+      z-index: 1;
+    }
   `]
 })
 export class AuthLayoutComponent {}

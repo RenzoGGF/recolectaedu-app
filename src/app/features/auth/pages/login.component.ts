@@ -1,9 +1,11 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, Validators, FormGroup} from '@angular/forms';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faGoogle, faMicrosoft } from '@fortawesome/free-brands-svg-icons';
+
+
 
 @Component({
   selector: 'app-login',
@@ -45,7 +47,7 @@ import { faGoogle, faMicrosoft } from '@fortawesome/free-brands-svg-icons';
             formControlName="password">
         </div>
 
-        <button typeS="submit" class="btn btn-submit" [disabled]="loginForm.invalid">
+        <button type="submit" class="btn btn-submit" [disabled]="loginForm.invalid">
           Iniciar sesión
         </button>
 
