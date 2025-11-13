@@ -71,6 +71,11 @@ import { faTimes } from '@fortawesome/free-solid-svg-icons';
       z-index: 1000;
       font-family: 'Poppins', sans-serif;
     }
+    .main-content {
+  margin-right: 320px; 
+  padding-right: 20px;
+}
+
 
     .modal-overlay {
       position: absolute;

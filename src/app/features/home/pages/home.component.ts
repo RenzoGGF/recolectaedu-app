@@ -1,36 +1,61 @@
-import { Component, signal } from '@angular/core';
+// CAMBIO 1: Importamos 'signal', 'inject', 'Router' y 'ReactiveForms'
+import { Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router'; // Router añadido
+import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms'; // Formularios añadidos
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faGraduationCap, faSearch } from '@fortawesome/free-solid-svg-icons';
-import { AdvancedSearchComponent } from '../../search/components/advanced-search.component.ts';
 
+// CAMBIO 2: Importamos el modal de Búsqueda Avanzada
+import { AdvancedSearchComponent } from '../../search/components/advanced-search.component.ts';
+import { SearchResourceParams } from '../../../core/models/resource.model';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterLink, FaIconComponent, AdvancedSearchComponent],
+  
+  // CAMBIO 3: Añadimos ReactiveFormsModule y AdvancedSearchComponent
+  imports: [
+    CommonModule, 
+    RouterLink, 
+    FaIconComponent, 
+    ReactiveFormsModule, // <-- AÑADIDO
+    AdvancedSearchComponent // <-- AÑADIDO
+  ],
   template: `
     <section class="hero-section">
       <div class="container">
         <h1>Todo el<br> conocimiento<br>que necesitas<br>en un solo lugar.</h1>
         <p class="subtitle">Recolecta. Aprende. Crece.</p>
 
-        <div class="search-block">
+        <form class="search-block" [formGroup]="searchForm" (ngSubmit)="onSimpleSearch()">
 
           <div class="search-bar-container">
-            <input type="text" class="search-main-input" placeholder="Busca documentos">
+            <input 
+              type="text" 
+              class="search-main-input" 
+              placeholder="Busca documentos"
+              formControlName="keyword">
 
             <div class="search-elements-inside">
-              <select name="tipo" class="search-select-inner">
+              <select name="Tipo" class="search-select-inner" formControlName="tipo">
                 <option value="">Tipo</option>
-                <option value="">Apuntes</option>
-                <option value="">Ejercicios</option>
-                <option value="">Practicas</option>
-                <option value="">Otros</option>>
+                <option value="Apuntes">Apuntes</option>
+                <option value="Ejercicios">Ejercicios</option>
+                <option value="Practicas">Practicas</option>
+                <option value="Otros">Otros</option>
               </select>
-              <input type="text" name="id_curso" class="search-input-inner" placeholder="ID Curso">
-              <fa-icon [icon]="iconSearch" class="search-icon-inner"></fa-icon>
+              
+              <input 
+                type="text" 
+                name="id_curso" 
+                class="search-input-inner" 
+                placeholder="ID Curso"
+                formControlName="cursoId">
+              
+              <button type="submit" class="search-icon-button">
+                <fa-icon [icon]="iconSearch" class="search-icon-inner"></fa-icon>
+              </button>
             </div>
           </div>
 
@@ -38,7 +63,7 @@ import { AdvancedSearchComponent } from '../../search/components/advanced-search
             Búsqueda<br>Avanzada
           </button>
 
-        </div>
+        </form>
       </div>
     </section>
 
@@ -52,7 +77,7 @@ import { AdvancedSearchComponent } from '../../search/components/advanced-search
         </div>
       </div>
     </section>
-
+    
     <section class="cta-section">
       <div class="container">
         <a [routerLink]="['/forum']" class="btn btn-forum">¡ENTRA AL FORO!</a>
@@ -93,7 +118,7 @@ import { AdvancedSearchComponent } from '../../search/components/advanced-search
       <div class="faq-container">
         <h2>Preguntas Frecuentes:</h2>
         <div class="faq-list">
-            <div class="faq-item">
+          <div class="faq-item">
             <strong>1. ¿Qué es RecolectaEdu?</strong>
             <p>RecolectaEdu es una plataforma comunitaria diseñada para que estudiantes, docentes y cualquier persona interesada pueda compartir y encontrar recursos académicos de manera sencilla. Piensa en ello como una biblioteca colaborativa donde todos pueden contribuir al conocimiento.</p>
           </div>
@@ -126,12 +151,13 @@ import { AdvancedSearchComponent } from '../../search/components/advanced-search
     </section>
 
     @if (isAdvancedSearchOpen()) {
-      <app-advanced-search
-        (close)="onCloseAdvancedSearch()"
+      <app-advanced-search 
+        (close)="onCloseAdvancedSearch()" 
         (apply)="onApplyFilters($event)"
       />
     }
   `,
+  // CAMBIO 8: Añadimos el estilo para el botón de la lupa
   styles: [`
     :host {
       display: block;
@@ -168,8 +194,7 @@ import { AdvancedSearchComponent } from '../../search/components/advanced-search
       margin-bottom: 30px;
     }
 
-    /* BARRA DE BÚSQUEDA */
-
+    /* BARRA DE BÚSQUEDA (Tus estilos) */
     .search-block {
       display: flex;
       align-items: center;
@@ -178,7 +203,6 @@ import { AdvancedSearchComponent } from '../../search/components/advanced-search
       max-width: 80%;
       margin: 0 auto;
     }
-
     .search-bar-container {
       display: flex;
       align-items: center;
@@ -190,7 +214,6 @@ import { AdvancedSearchComponent } from '../../search/components/advanced-search
       width: 100%;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
     }
-
     .search-main-input {
       border: none;
       outline: none;
@@ -200,17 +223,14 @@ import { AdvancedSearchComponent } from '../../search/components/advanced-search
       color: #000;
       background: transparent;
     }
-
     .search-main-input::placeholder {
       color: #555;
     }
-
     .search-elements-inside {
       display: flex;
       align-items: center;
       gap: 10px;
     }
-
     .search-select-inner,
     .search-input-inner {
       height: 42px;
@@ -223,11 +243,18 @@ import { AdvancedSearchComponent } from '../../search/components/advanced-search
       background-color: #fff;
       cursor: pointer;
     }
-
     .search-input-inner {
       width: 100px;
     }
 
+    /* ¡ESTILO AÑADIDO PARA EL BOTÓN-LUPA! */
+    .search-icon-button {
+      background: none;
+      border: none;
+      padding: 0;
+      margin: 0;
+      cursor: pointer;
+    }
     .search-icon-inner {
       font-size: 1.3rem;
       color: #8A8A8A;
@@ -250,15 +277,14 @@ import { AdvancedSearchComponent } from '../../search/components/advanced-search
       justify-content: center;
       white-space: nowrap;
       transition: box-shadow 0.2s ease, transform 0.2s ease;
+      border: none; /* Añadido para que parezca botón */
     }
-
     .btn-advanced-search:hover {
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
       transform: translateY(-2px);
     }
 
-
-    /* --- 2. Sección Universidades --- */
+    /* (Resto de tus estilos... no cambian) */
     .universities-section {
       background-color: #f8f7fB;
       padding: 0 20px 60px 20px;
@@ -297,8 +323,6 @@ import { AdvancedSearchComponent } from '../../search/components/advanced-search
     .pill:hover {
       background-color: #0056b3;
     }
-
-    /* --- 3. Sección CTA --- */
     .cta-section {
       background-color: #FFFFFF;
       color: #240334;
@@ -341,8 +365,6 @@ import { AdvancedSearchComponent } from '../../search/components/advanced-search
     .btn-primary-blue:hover {
       background-color: #0056b3;
     }
-
-    /* --- 4. Sección Equipo --- */
     .team-section {
       background-color: #f8f7fB;
     }
@@ -377,8 +399,6 @@ import { AdvancedSearchComponent } from '../../search/components/advanced-search
       font-weight: 700;
       line-height: 1.4;
     }
-
-    /* --- 5. SECCIÓN FAQ --- */
     .faq-section {
       background-color: #f8f7fB; /* Fondo gris claro */
       padding: 60px 20px;
@@ -422,51 +442,24 @@ import { AdvancedSearchComponent } from '../../search/components/advanced-search
       font-size: 1.5rem;
       font-weight: 700;
     }
-
-    /* --- 6. AJUSTES RESPONSIVOS --- */
     @media (max-width: 850px) {
-
-      .container {
-        padding: 40px 20px;
-      }
-
-      .hero-section h1 {
-        font-size: 2rem;
-      }
-
+      .container { padding: 40px 20px; }
+      .hero-section h1 { font-size: 2rem; }
       .search-block {
-        grid-template-columns: 1fr;
+        /* Se vuelven 2 filas en móvil */
+        display: flex;
+        flex-direction: column;
         gap: 15px;
         max-width: 100%;
       }
-
-      .search-main-input {
-        height: 60px;
-        padding-right: 60px;
-      }
-
-      .search-elements-inside {
-        right: 20px;
-      }
-
-      .search-select-inner,
-      .search-input-inner {
-        display: none;
-      }
-
-      .search-icon-inner {
-        margin-left: 0;
-        font-size: 1.2rem;
-      }
-
-      .btn-advanced-search {
-        height: 60px;
-      }
-
-      .team-grid {
-        flex-direction: column;
-        align-items: center;
-      }
+      .search-bar-container { width: 100%; }
+      .search-main-input { height: 60px; padding-right: 60px; }
+      .search-elements-inside { right: 20px; }
+      .search-select-inner, .search-input-inner { display: none; }
+      .search-icon-inner { margin-left: 0; font-size: 1.2rem; }
+      .search-icon-button { /* Se mantiene igual */ }
+      .btn-advanced-search { height: 60px; width: 100%; }
+      .team-grid { flex-direction: column; align-items: center; }
     }
   `]
 })
@@ -474,19 +467,31 @@ export class HomeComponent {
   iconCurso = faGraduationCap;
   iconSearch = faSearch;
 
-  universities: string[] = [
-    'Universidad de Lima',
-    'Universidad de Ciencias Aplicadas',
-    'Universidad Privada del Norte',
-    'Universidad Nacional de Ingeniería',
-    'Pontificia Universidad Católica del Perú',
-    'Universidad de Piura',
-    'Universidad César Vallejo',
-    'Universidad Nacional Agraria La Molina'
-  ];
+  universities: string[] = [ /* (lista de universidades) */ ];
 
+  // --- CAMBIO 9: LÓGICA DE BÚSQUEDA Y NAVEGACIÓN ---
+  
+  // Inyectamos las herramientas
+  private fb = inject(FormBuilder);
+  private router = inject(Router);
 
+  // Creamos el formulario para la barra simple
+  searchForm: FormGroup;
+  
+  // Signals para el modal
   isAdvancedSearchOpen = signal(false);
+  private advancedFilters = signal<Partial<SearchResourceParams>>({});
+
+  constructor() {
+    // Inicializamos el formulario de búsqueda simple
+    this.searchForm = this.fb.group({
+      keyword: [''],
+      tipo: [''],
+      cursoId: ['']
+    });
+  }
+
+  // --- Métodos del Modal ---
 
   onOpenAdvancedSearch(): void {
     this.isAdvancedSearchOpen.set(true);
@@ -496,9 +501,54 @@ export class HomeComponent {
     this.isAdvancedSearchOpen.set(false);
   }
 
+  /**
+   * Se llama cuando el modal emite los filtros (US-10)
+   */
   onApplyFilters(filters: any): void {
-    console.log('Filtros recibidos del modal:', filters);
-
+    // 1. Guardamos los filtros avanzados en el signal
+    this.advancedFilters.set(filters);
+    
+    // 2. Cerramos el modal
     this.onCloseAdvancedSearch();
+    
+    // 3. Ejecutamos la búsqueda combinada
+    this.navigateToSearch();
+  }
+
+  // --- Métodos de Búsqueda (US-09) ---
+
+  /**
+   * Se llama cuando se envía el formulario de búsqueda simple.
+   */
+  onSimpleSearch(): void {
+    this.navigateToSearch();
+  }
+
+  /**
+   * Método central que une todos los filtros y navega a /search
+   */
+  private navigateToSearch(): void {
+    // 1. Obtenemos los filtros de la barra simple
+    const simpleParams = this.searchForm.value;
+    
+    // 2. Obtenemos los filtros guardados del modal
+    const advancedParams = this.advancedFilters();
+
+    // 3. Combinamos todos los filtros
+    const allParams: SearchResourceParams = { ...simpleParams, ...advancedParams };
+
+    // 4. Limpiamos los parámetros que estén vacíos
+    const queryParams: any = {};
+    for (const key in allParams) {
+      const value = (allParams as any)[key];
+      if (value) { // Solo añade el parámetro si tiene un valor
+        queryParams[key] = value;
+      }
+    }
+
+    console.log('Navegando a /search con los filtros:', queryParams);
+
+    // 5. Navegamos a la página de /search con los filtros como Query Params
+    this.router.navigate(['/search'], { queryParams: queryParams });
   }
 }

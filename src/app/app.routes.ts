@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { LandingLayoutComponent } from './shared/layouts/landing-layout';
 import { AuthLayoutComponent } from './shared/layouts/auth.layout';
+import { SearchLayoutComponent } from './shared/layouts/search.layout'; 
 
 
 export const routes: Routes = [
@@ -14,6 +15,12 @@ export const routes: Routes = [
     path: 'auth',
     component: AuthLayoutComponent,
     loadChildren: () => import('./features/auth/auth.routes').then(m => m.AUTH_ROUTES)
+  },
+{
+    path: 'search',
+    component: SearchLayoutComponent, 
+    loadChildren: () =>
+      import('./features/search/search.routes').then(m => m.SEARCH_ROUTES)
   }
 
 ];
