@@ -46,7 +46,7 @@ import {
       align-items: center;
       background-color: #240334;
       color: #FFFFFF;
-      padding: 20px 40px; /* Ajusta esto según tu Figma */
+      padding: 20px 40px;
     }
 
     .footer-links {
@@ -79,7 +79,7 @@ import {
     .footer-social a {
       color: #FFFFFF;
       text-decoration: none;
-      font-size: 24px; /* Ajusta esto según tu Figma */
+      font-size: 24px;
     }
 
     .footer-copyright p {

@@ -1,26 +1,22 @@
-// CAMBIO 1: Importamos 'signal', 'inject', 'Router' y 'ReactiveForms'
 import { Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router'; // Router añadido
-import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms'; // Formularios añadidos
+import { Router, RouterLink } from '@angular/router';
+import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faGraduationCap, faSearch } from '@fortawesome/free-solid-svg-icons';
 
-// CAMBIO 2: Importamos el modal de Búsqueda Avanzada
 import { AdvancedSearchComponent } from '../../search/components/advanced-search.component.ts';
 import { SearchResourceParams } from '../../../core/models/resource.model';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  
-  // CAMBIO 3: Añadimos ReactiveFormsModule y AdvancedSearchComponent
   imports: [
-    CommonModule, 
-    RouterLink, 
-    FaIconComponent, 
-    ReactiveFormsModule, // <-- AÑADIDO
-    AdvancedSearchComponent // <-- AÑADIDO
+    CommonModule,
+    RouterLink,
+    FaIconComponent,
+    ReactiveFormsModule,
+    AdvancedSearchComponent
   ],
   template: `
     <section class="hero-section">
@@ -31,9 +27,9 @@ import { SearchResourceParams } from '../../../core/models/resource.model';
         <form class="search-block" [formGroup]="searchForm" (ngSubmit)="onSimpleSearch()">
 
           <div class="search-bar-container">
-            <input 
-              type="text" 
-              class="search-main-input" 
+            <input
+              type="text"
+              class="search-main-input"
               placeholder="Busca documentos"
               formControlName="keyword">
 
@@ -45,14 +41,14 @@ import { SearchResourceParams } from '../../../core/models/resource.model';
                 <option value="Practicas">Practicas</option>
                 <option value="Otros">Otros</option>
               </select>
-              
-              <input 
-                type="text" 
-                name="id_curso" 
-                class="search-input-inner" 
+
+              <input
+                type="text"
+                name="id_curso"
+                class="search-input-inner"
                 placeholder="ID Curso"
                 formControlName="cursoId">
-              
+
               <button type="submit" class="search-icon-button">
                 <fa-icon [icon]="iconSearch" class="search-icon-inner"></fa-icon>
               </button>
@@ -77,7 +73,7 @@ import { SearchResourceParams } from '../../../core/models/resource.model';
         </div>
       </div>
     </section>
-    
+
     <section class="cta-section">
       <div class="container">
         <a [routerLink]="['/forum']" class="btn btn-forum">¡ENTRA AL FORO!</a>
@@ -95,19 +91,19 @@ import { SearchResourceParams } from '../../../core/models/resource.model';
         <p>¿Te interesa conocer al equipo detrás del desarrollo?</p>
         <div class="team-grid">
           <div class="team-member">
-            <img src="/assets/images/team-carlos.png" alt="Carlos Molina">
+            <img src="team-carlos.png" alt="Carlos Molina">
             <strong>Carlos Alejandro<br>Molina Huatuco</strong>
           </div>
           <div class="team-member">
-            <img src="/assets/images/team-sebastian.png" alt="Sebastián Luna">
+            <img src="team-sebastian.png" alt="Sebastián Luna">
             <strong>Sebastián Rodrigo<br>Luna Centeno</strong>
           </div>
           <div class="team-member">
-            <img src="/assets/images/team-renzo.png" alt="Renzo Gutierrez">
+            <img src="team-renzo.png" alt="Renzo Gutierrez">
             <strong>Renzo Gabriel<br>Gutierrez Fernandez</strong>
           </div>
           <div class="team-member">
-            <img src="/assets/images/team-eduardo.png" alt="Eduardo Bravo">
+            <img src="team-eduardo.png" alt="Eduardo Bravo">
             <strong>Eduardo Fernando<br>Bravo Lévano</strong>
           </div>
         </div>
@@ -151,13 +147,12 @@ import { SearchResourceParams } from '../../../core/models/resource.model';
     </section>
 
     @if (isAdvancedSearchOpen()) {
-      <app-advanced-search 
-        (close)="onCloseAdvancedSearch()" 
+      <app-advanced-search
+        (close)="onCloseAdvancedSearch()"
         (apply)="onApplyFilters($event)"
       />
     }
   `,
-  // CAMBIO 8: Añadimos el estilo para el botón de la lupa
   styles: [`
     :host {
       display: block;
@@ -174,7 +169,6 @@ import { SearchResourceParams } from '../../../core/models/resource.model';
       text-align: center;
     }
 
-    /* Sección Héroe  */
     .hero-section {
       background-color: #f8f7fB;
       padding-top: 40px;
@@ -194,7 +188,6 @@ import { SearchResourceParams } from '../../../core/models/resource.model';
       margin-bottom: 30px;
     }
 
-    /* BARRA DE BÚSQUEDA (Tus estilos) */
     .search-block {
       display: flex;
       align-items: center;
@@ -247,7 +240,6 @@ import { SearchResourceParams } from '../../../core/models/resource.model';
       width: 100px;
     }
 
-    /* ¡ESTILO AÑADIDO PARA EL BOTÓN-LUPA! */
     .search-icon-button {
       background: none;
       border: none;
@@ -277,14 +269,13 @@ import { SearchResourceParams } from '../../../core/models/resource.model';
       justify-content: center;
       white-space: nowrap;
       transition: box-shadow 0.2s ease, transform 0.2s ease;
-      border: none; /* Añadido para que parezca botón */
+      border: none;
     }
     .btn-advanced-search:hover {
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
       transform: translateY(-2px);
     }
 
-    /* (Resto de tus estilos... no cambian) */
     .universities-section {
       background-color: #f8f7fB;
       padding: 0 20px 60px 20px;
@@ -446,7 +437,6 @@ import { SearchResourceParams } from '../../../core/models/resource.model';
       .container { padding: 40px 20px; }
       .hero-section h1 { font-size: 2rem; }
       .search-block {
-        /* Se vuelven 2 filas en móvil */
         display: flex;
         flex-direction: column;
         gap: 15px;
@@ -457,7 +447,7 @@ import { SearchResourceParams } from '../../../core/models/resource.model';
       .search-elements-inside { right: 20px; }
       .search-select-inner, .search-input-inner { display: none; }
       .search-icon-inner { margin-left: 0; font-size: 1.2rem; }
-      .search-icon-button { /* Se mantiene igual */ }
+      .search-icon-button { }
       .btn-advanced-search { height: 60px; width: 100%; }
       .team-grid { flex-direction: column; align-items: center; }
     }
@@ -469,29 +459,21 @@ export class HomeComponent {
 
   universities: string[] = [ /* (lista de universidades) */ ];
 
-  // --- CAMBIO 9: LÓGICA DE BÚSQUEDA Y NAVEGACIÓN ---
-  
-  // Inyectamos las herramientas
   private fb = inject(FormBuilder);
   private router = inject(Router);
 
-  // Creamos el formulario para la barra simple
   searchForm: FormGroup;
-  
-  // Signals para el modal
+
   isAdvancedSearchOpen = signal(false);
   private advancedFilters = signal<Partial<SearchResourceParams>>({});
 
   constructor() {
-    // Inicializamos el formulario de búsqueda simple
     this.searchForm = this.fb.group({
       keyword: [''],
       tipo: [''],
       cursoId: ['']
     });
   }
-
-  // --- Métodos del Modal ---
 
   onOpenAdvancedSearch(): void {
     this.isAdvancedSearchOpen.set(true);
@@ -501,54 +483,32 @@ export class HomeComponent {
     this.isAdvancedSearchOpen.set(false);
   }
 
-  /**
-   * Se llama cuando el modal emite los filtros (US-10)
-   */
   onApplyFilters(filters: any): void {
-    // 1. Guardamos los filtros avanzados en el signal
     this.advancedFilters.set(filters);
-    
-    // 2. Cerramos el modal
     this.onCloseAdvancedSearch();
-    
-    // 3. Ejecutamos la búsqueda combinada
     this.navigateToSearch();
   }
 
-  // --- Métodos de Búsqueda (US-09) ---
-
-  /**
-   * Se llama cuando se envía el formulario de búsqueda simple.
-   */
   onSimpleSearch(): void {
     this.navigateToSearch();
   }
 
-  /**
-   * Método central que une todos los filtros y navega a /search
-   */
   private navigateToSearch(): void {
-    // 1. Obtenemos los filtros de la barra simple
     const simpleParams = this.searchForm.value;
-    
-    // 2. Obtenemos los filtros guardados del modal
     const advancedParams = this.advancedFilters();
 
-    // 3. Combinamos todos los filtros
     const allParams: SearchResourceParams = { ...simpleParams, ...advancedParams };
 
-    // 4. Limpiamos los parámetros que estén vacíos
     const queryParams: any = {};
     for (const key in allParams) {
       const value = (allParams as any)[key];
-      if (value) { // Solo añade el parámetro si tiene un valor
+      if (value) {
         queryParams[key] = value;
       }
     }
 
     console.log('Navegando a /search con los filtros:', queryParams);
 
-    // 5. Navegamos a la página de /search con los filtros como Query Params
     this.router.navigate(['/search'], { queryParams: queryParams });
   }
 }

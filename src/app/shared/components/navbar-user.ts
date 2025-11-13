@@ -1,41 +1,44 @@
-import { iconName } from './../../../../node_modules/@fortawesome/free-brands-svg-icons/fa500px.d';
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {RouterLink} from '@angular/router'
+import { Router, RouterLink } from '@angular/router';
+import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import { AuthService } from '../../core/services/auth.service';
 
-
 @Component({
   selector: 'app-navbar-user',
   standalone: true,
-  imports: [CommonModule, RouterLink, FaIconComponent],
+  imports: [CommonModule, RouterLink, FaIconComponent, ReactiveFormsModule],
   template: `
     <nav class="navbar-container">
 
       <div class="navbar-left">
         <a [routerLink]="['/']" class="logo-link">
-          <img src="/assets/images/logo.png" alt="Logo RecolectaEdu" class="logo-img">
+          <img src="logo.png" alt="Logo RecolectaEdu" class="logo-img">
           <span>RecolectaEdu</span>
         </a>
       </div>
 
-      <div class="navbar-search">
-        <fa-icon [icon]="iconSearch" class="search-icon"></fa-icon>
-        <input type="text" placeholder="Busca documentos">
-      </div>
+      <form class="navbar-search" [formGroup]="searchForm" (ngSubmit)="onSearch()">
+
+        <button type="submit" class="search-icon-button">
+          <fa-icon [icon]="iconSearch" class="search-icon"></fa-icon>
+        </button>
+
+        <input
+          type="text"
+          placeholder="Busca documentos"
+          formControlName="keyword">
+      </form>
 
       <div class="navbar-right">
         <a [routerLink]="['/instituciones']" class="nav-link">Instituciones Educativas</a>
 
         @if (authService.isAuthenticated()) {
-
           <a [routerLink]="['/premium']" class="nav-link-premium">Premium</a>
           <a [routerLink]="['/profile']" class="nav-link-user">Usuario</a>
-
         } @else {
-
           <a [routerLink]="['/auth/login']" class="btn btn-login">
             Iniciar sesión
           </a>
@@ -61,7 +64,6 @@ import { AuthService } from '../../core/services/auth.service';
       height: 70px;
     }
 
-    /* Lado Izquierdo */
     .logo-link {
       display: flex;
       align-items: center;
@@ -75,20 +77,30 @@ import { AuthService } from '../../core/services/auth.service';
       margin-right: 10px;
     }
 
-    /* Centro */
     .navbar-search {
       position: relative;
       flex-grow: 1;
       max-width: 500px;
       margin: 0 40px;
+      display: flex;
     }
-    .search-icon {
+
+    .search-icon-button {
+      background: none;
+      border: none;
+      padding: 0;
+      margin: 0;
       position: absolute;
       left: 15px;
       top: 50%;
       transform: translateY(-50%);
       color: #8A8A8A;
+      cursor: pointer;
     }
+    .search-icon {
+      font-size: 1rem;
+    }
+
     .navbar-search input {
       width: 100%;
       padding: 12px 20px 12px 45px;
@@ -100,7 +112,6 @@ import { AuthService } from '../../core/services/auth.service';
       background-color: #FFFFFF;
     }
 
-    /* Derecho */
     .navbar-right {
       display: flex;
       align-items: center;
@@ -116,10 +127,6 @@ import { AuthService } from '../../core/services/auth.service';
     .nav-link:hover {
       text-decoration: underline;
     }
-
-
-
-    /* VISTA LOGUEADA */
     .nav-link-premium {
       color: #FFFFFF;
       text-decoration: none;
@@ -129,7 +136,6 @@ import { AuthService } from '../../core/services/auth.service';
     .nav-link-premium:hover {
       text-decoration: underline;
     }
-
     .nav-link-user {
       color: #0D8EFF;
       text-decoration: none;
@@ -139,8 +145,6 @@ import { AuthService } from '../../core/services/auth.service';
     .nav-link-user:hover {
       text-decoration: underline;
     }
-
-    /* VISTA DESLOGUEADA (Botón) */
     .btn {
       padding: 10px 24px;
       border: none;
@@ -162,5 +166,30 @@ import { AuthService } from '../../core/services/auth.service';
 })
 export class NavbarUserComponent {
   iconSearch = faSearch;
-  constructor(public authService: AuthService) {}
+
+  private fb = inject(FormBuilder);
+  private router = inject(Router);
+
+  searchForm: FormGroup;
+
+  constructor(public authService: AuthService) {
+    this.searchForm = this.fb.group({
+      keyword: ['']
+    });
+  }
+
+  onSearch(): void {
+    const keyword = this.searchForm.value.keyword;
+
+    if (keyword) {
+      console.log('Buscando desde el navbar:', keyword);
+
+      this.router.navigate(['/search'], {
+        queryParams: {
+          keyword: keyword
+        }
+      });
+      this.searchForm.reset();
+    }
+  }
 }

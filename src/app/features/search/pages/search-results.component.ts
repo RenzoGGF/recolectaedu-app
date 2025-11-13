@@ -1,12 +1,11 @@
-// CAMBIO 1: Importamos todo lo necesario
 import { Component, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, ActivatedRoute, Params } from '@angular/router'; // ActivatedRoute para leer la URL
+import { Router, RouterLink, ActivatedRoute, Params } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { catchError, of, tap } from 'rxjs';
 
 import { Resource, SearchResourceParams } from '../../../core/models/resource.model';
-import { ResourceService } from '../../../core/services/resource.service'; // Nuestro servicio
+import { ResourceService } from '../../../core/services/resource.service';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faThumbsUp } from '@fortawesome/free-solid-svg-icons';
 
@@ -18,10 +17,11 @@ import { faThumbsUp } from '@fortawesome/free-solid-svg-icons';
     <main class="results-column">
       <div class="results-header">
         <h1>Todos</h1>
-        <select class="order-select">
-          <option value="recientes">Ordenar por</option>
-          <option value="recientes">Recientes</option>
-          <option value="relevantes">Relevantes</option>
+        <select class="order-select"
+                [value]="currentSort()"
+                (change)="onSortChange($event)">
+          <option value="RECIENTES">Recientes</option>
+          <option value="RELEVANTES">Relevantes</option>
         </select>
       </div>
 
@@ -37,12 +37,10 @@ import { faThumbsUp } from '@fortawesome/free-solid-svg-icons';
               <h3>{{ resource.titulo }}</h3>
               <span class="course">{{ resource.id_curso }}</span>
               <span class="university">{{ resource.autorNombre }}</span>
-
               <div class="details">
                 <span>{{ resource.descripcion }}</span>
                 <span>{{ resource.creado_el | date: 'yyyy/MM/dd' }}</span>
               </div>
-
               <span class="format">{{ resource.formato }}</span>
             </div>
 
@@ -57,7 +55,6 @@ import { faThumbsUp } from '@fortawesome/free-solid-svg-icons';
       </div>
     </main>
   `,
-  // (Tus estilos no cambian)
   styles: [`
     .results-column { }
     .results-header {
@@ -71,7 +68,7 @@ import { faThumbsUp } from '@fortawesome/free-solid-svg-icons';
     .results-header h1 {
       font-size: 1.8rem;
       font-weight: 700;
-      color: #000; 
+      color: #000;
       margin: 0;
     }
     .order-select {
@@ -83,6 +80,7 @@ import { faThumbsUp } from '@fortawesome/free-solid-svg-icons';
       font-size: 0.9rem;
       background-color: #FFFFFF;
       color: #000;
+      cursor: pointer;
     }
     .results-list {
       display: flex;
@@ -113,59 +111,64 @@ import { faThumbsUp } from '@fortawesome/free-solid-svg-icons';
 export class SearchResultsComponent implements OnInit {
   iconThumb = faThumbsUp;
 
-  // --- CAMBIO 4: Lógica del componente ---
-
-  // Inyectamos los servicios
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private resourceService = inject(ResourceService);
 
-  // Creamos el signal para los recursos, inicializado como vacío
   resources = signal<Resource[]>([]);
-  // Signal para el mensaje de "cargando"
   loadingMessage = signal('Cargando recursos...');
+  currentSort = signal('RECIENTES');
 
   ngOnInit(): void {
-    // Nos suscribimos a los cambios en los parámetros de la URL
     this.route.queryParams.subscribe((params: Params) => {
-      // 1. Convertimos los Params de la URL a nuestra interfaz
+      const orden = params['ordenarPor'] || 'RECIENTES';
+      this.currentSort.set(orden);
       const searchParams: SearchResourceParams = {
         keyword: params['keyword'],
         cursoId: params['cursoId'] ? +params['cursoId'] : undefined,
         tipo: params['tipo'],
         autor: params['autor'],
         universidad: params['universidad'],
-        ordenarPor: params['ordenarPor']
+        ordenarPor: orden
       };
 
-      // 2. (Opcional) Limpiamos los filtros indefinidos (mejor práctica)
       const cleanParams = Object.fromEntries(
         Object.entries(searchParams).filter(([_, v]) => v != null)
       );
 
-      // 3. Llamamos a nuestro método para cargar recursos
       this.loadResources(cleanParams);
     });
   }
 
-  
   loadResources(params: SearchResourceParams): void {
-    this.loadingMessage.set('Buscando...'); // Actualiza el mensaje
-    this.resources.set([]); // Vacía los resultados anteriores
+    this.loadingMessage.set('Buscando...');
+    this.resources.set([]);
 
     this.resourceService.searchResources(params).pipe(
       tap((data: Resource[]) => {
-        // Éxito: Actualizamos el signal con los datos
         this.resources.set(data);
         if (data.length === 0) {
           this.loadingMessage.set('No se encontraron recursos que coincidan con tu búsqueda.');
         }
       }),
       catchError((err: HttpErrorResponse) => {
-        // Error: Manejamos el error
         console.error('Error al cargar recursos:', err);
         this.loadingMessage.set('Error al cargar recursos. Intenta de nuevo más tarde.');
-        return of(null); // Devolvemos un observable nulo para que la app no se rompa
+        return of(null);
       })
     ).subscribe();
+  }
+
+
+  onSortChange(event: Event): void {
+    const newValue = (event.target as HTMLSelectElement).value;
+
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        ordenarPor: newValue
+      },
+      queryParamsHandling: 'merge',
+    });
   }
 }
