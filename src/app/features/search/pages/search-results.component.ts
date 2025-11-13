@@ -1,104 +1,65 @@
-import { Component, signal } from '@angular/core';
+// CAMBIO 1: Importamos todo lo necesario
+import { Component, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute, Params } from '@angular/router'; // ActivatedRoute para leer la URL
+import { HttpErrorResponse } from '@angular/common/http';
+import { catchError, of, tap } from 'rxjs';
 
-// 1. Importamos el Sidebar que acabamos de crear
-import { UserSidebar } from '../../../shared/components/user-sidebar';
-
-// 2. Importamos el modelo de Recurso
-import { Resource } from '../../../core/models/resource.model';
-
-// 3. Importamos el ícono de "like"
+import { Resource, SearchResourceParams } from '../../../core/models/resource.model';
+import { ResourceService } from '../../../core/services/resource.service'; // Nuestro servicio
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faThumbsUp } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-search-results',
   standalone: true,
-  imports: [CommonModule, RouterLink, UserSidebar, FaIconComponent],
+  imports: [CommonModule, RouterLink, FaIconComponent],
   template: `
-    <div class="page-container">
+    <main class="results-column">
+      <div class="results-header">
+        <h1>Todos</h1>
+        <select class="order-select">
+          <option value="recientes">Ordenar por</option>
+          <option value="recientes">Recientes</option>
+          <option value="relevantes">Relevantes</option>
+        </select>
+      </div>
 
-      <main class="results-column">
-        <div class="results-header">
-          <h1>Todos</h1>
-          <select class="order-select">
-            <option value="recientes">Ordenar por</option>
-            <option value="recientes">Recientes</option>
-            <option value="relevantes">Relevantes</option>
-          </select>
-        </div>
+      <div class="results-list">
+        @for (resource of resources(); track resource.id_recurso) {
+          <div class="resource-card">
 
-        <div class="results-list">
-          @for (resource of resources(); track resource.id_recurso) {
-            <div class="resource-card">
-
-              <div class="resource-image">
-                <span>[IMG]</span>
-              </div>
-
-              <div class="resource-content">
-                <h3>{{ resource.titulo }}</h3>
-                <span class="course">{{ resource.cursoNombre }}</span>
-                <span class="university">{{ resource.universidadNombre }}</span>
-
-                <div class="details">
-                  <span>{{ resource.paginas }} páginas</span>
-                  <span>{{ resource.anio }}</span>
-                </div>
-
-                <span class="format">{{ resource.formato }}</span>
-              </div>
-
-              <div class="resource-rating">
-                <fa-icon [icon]="iconThumb"></fa-icon>
-                <strong>{{ resource.rating }}%</strong>
-                <span>({{ resource.votos }})</span>
-              </div>
-
+            <div class="resource-image">
+              <span>[IMG]</span>
             </div>
-          } @empty {
-            <p>No se encontraron recursos.</p>
-          }
-        </div>
-      </main>
 
-      <aside class="sidebar-column">
-        <app-user-sidebar />
-      </aside>
+            <div class="resource-content">
+              <h3>{{ resource.titulo }}</h3>
+              <span class="course">{{ resource.id_curso }}</span>
+              <span class="university">{{ resource.autorNombre }}</span>
 
-    </div>
+              <div class="details">
+                <span>{{ resource.descripcion }}</span>
+                <span>{{ resource.creado_el | date: 'yyyy/MM/dd' }}</span>
+              </div>
+
+              <span class="format">{{ resource.formato }}</span>
+            </div>
+
+            <div class="resource-rating">
+              <fa-icon [icon]="iconThumb"></fa-icon>
+              </div>
+
+          </div>
+        } @empty {
+          <p>{{ loadingMessage() }}</p>
+        }
+      </div>
+    </main>
   `,
+  // (Tus estilos no cambian)
   styles: [`
-    :host {
-      display: block;
-      /* CAMBIO 2: El fondo vuelve a ser GRIS CLARO */
-      background-color: #f8f7fB;
-      padding: 40px 20px;
-      font-family: 'Poppins', sans-serif;
-      min-height: 100vh;
-    }
-
-    /* CAMBIO 3: Volvemos a usar Grid para el layout */
-    .page-container {
-      display: grid;
-      /* Columna 1 (flexible) | Columna 2 (fija de 300px) */
-      grid-template-columns: 1fr 300px;
-      gap: 30px;
-      max-width: 1300px;
-      margin: 0 auto;
-      /* Alinear los elementos al inicio (arriba) */
-      align-items: start;
-    }
-
-    .results-column {
-      /* Columna izquierda (main) */
-    }
-
-    .sidebar-column {
-      /* Columna derecha (aside) */
-    }
-
+    .results-column { }
     .results-header {
       display: flex;
       justify-content: space-between;
@@ -110,8 +71,7 @@ import { faThumbsUp } from '@fortawesome/free-solid-svg-icons';
     .results-header h1 {
       font-size: 1.8rem;
       font-weight: 700;
-      /* CAMBIO 4: El título vuelve a ser oscuro */
-      color: #000;
+      color: #000; 
       margin: 0;
     }
     .order-select {
@@ -124,8 +84,6 @@ import { faThumbsUp } from '@fortawesome/free-solid-svg-icons';
       background-color: #FFFFFF;
       color: #000;
     }
-
-    /* (El resto de estilos de .resource-card no cambia) */
     .results-list {
       display: flex;
       flex-direction: column;
@@ -140,75 +98,74 @@ import { faThumbsUp } from '@fortawesome/free-solid-svg-icons';
       padding: 20px;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
     }
-    .resource-image {
-      width: 110px;
-      height: 110px;
-      flex-shrink: 0;
-      background-color: #E7E7EE;
-      border-radius: 8px;
-      display: grid;
-      place-items: center;
-      font-weight: 600;
-      color: #8A8A8A;
-    }
-    .resource-content {
-      flex-grow: 1;
-    }
-    .resource-content h3 {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: #0D8EFF;
-      margin: 0 0 5px 0;
-    }
-    .resource-content .course {
-      display: inline-block;
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: #000;
-      background-color: #E5DFFF;
-      padding: 3px 10px;
-      border-radius: 50px;
-      margin-right: 10px;
-    }
-    .resource-content .university {
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: #555;
-    }
-    .resource-content .details {
-      font-size: 0.9rem;
-      color: #555;
-      margin: 8px 0;
-    }
-    .resource-content .details span {
-      margin-right: 15px;
-    }
-    .resource-content .format {
-      font-size: 0.9rem;
-      font-weight: 700;
-      color: #8A8A8A;
-    }
-    .resource-rating {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 1rem;
-      font-weight: 600;
-      white-space: nowrap;
-      color: #32CD32;
-    }
-    .resource-rating span {
-      font-size: 0.9rem;
-      color: #555;
-    }
+    .resource-image { width: 110px; height: 110px; flex-shrink: 0; background-color: #E7E7EE; border-radius: 8px; display: grid; place-items: center; font-weight: 600; color: #8A8A8A; }
+    .resource-content { flex-grow: 1; }
+    .resource-content h3 { font-size: 1.1rem; font-weight: 700; color: #0D8EFF; margin: 0 0 5px 0; }
+    .resource-content .course { display: inline-block; font-size: 0.9rem; font-weight: 600; color: #000; background-color: #E5DFFF; padding: 3px 10px; border-radius: 50px; margin-right: 10px; }
+    .resource-content .university { font-size: 0.9rem; font-weight: 600; color: #555; }
+    .resource-content .details { font-size: 0.9rem; color: #555; margin: 8px 0; }
+    .resource-content .details span { margin-right: 15px; }
+    .resource-content .format { font-size: 0.9rem; font-weight: 700; color: #8A8A8A; }
+    .resource-rating { display: flex; align-items: center; gap: 8px; font-size: 1rem; font-weight: 600; white-space: nowrap; color: #32CD32; }
+    .resource-rating span { font-size: 0.9rem; color: #555; }
   `]
 })
-export class SearchResultsComponent {
+export class SearchResultsComponent implements OnInit {
   iconThumb = faThumbsUp;
-  resources = signal<any[]>([
-    { id_recurso: 1, titulo: 'Clase 1 semana 1', cursoNombre: 'Calculo 1', universidadNombre: 'Universidad de Lima', paginas: 3, anio: '2020/2021', formato: 'PDF', rating: 97.5, votos: 40 },
-    { id_recurso: 2, titulo: 'Clase 1 semana 2', cursoNombre: 'Calculo 1', universidadNombre: 'Universidad de Lima', paginas: 3, anio: '2020/2021', formato: 'PDF', rating: 3, votos: 100 },
-    { id_recurso: 3, titulo: 'Clase 1 semana 3', cursoNombre: 'Calculo 1', universidadNombre: 'Universidad de Lima', paginas: 5, anio: '2020/2021', formato: 'PDF', rating: 90, votos: 13 }
-  ]);
-  constructor() {}
+
+  // --- CAMBIO 4: Lógica del componente ---
+
+  // Inyectamos los servicios
+  private route = inject(ActivatedRoute);
+  private resourceService = inject(ResourceService);
+
+  // Creamos el signal para los recursos, inicializado como vacío
+  resources = signal<Resource[]>([]);
+  // Signal para el mensaje de "cargando"
+  loadingMessage = signal('Cargando recursos...');
+
+  ngOnInit(): void {
+    // Nos suscribimos a los cambios en los parámetros de la URL
+    this.route.queryParams.subscribe((params: Params) => {
+      // 1. Convertimos los Params de la URL a nuestra interfaz
+      const searchParams: SearchResourceParams = {
+        keyword: params['keyword'],
+        cursoId: params['cursoId'] ? +params['cursoId'] : undefined,
+        tipo: params['tipo'],
+        autor: params['autor'],
+        universidad: params['universidad'],
+        ordenarPor: params['ordenarPor']
+      };
+
+      // 2. (Opcional) Limpiamos los filtros indefinidos (mejor práctica)
+      const cleanParams = Object.fromEntries(
+        Object.entries(searchParams).filter(([_, v]) => v != null)
+      );
+
+      // 3. Llamamos a nuestro método para cargar recursos
+      this.loadResources(cleanParams);
+    });
+  }
+
+  
+  loadResources(params: SearchResourceParams): void {
+    this.loadingMessage.set('Buscando...'); // Actualiza el mensaje
+    this.resources.set([]); // Vacía los resultados anteriores
+
+    this.resourceService.searchResources(params).pipe(
+      tap((data: Resource[]) => {
+        // Éxito: Actualizamos el signal con los datos
+        this.resources.set(data);
+        if (data.length === 0) {
+          this.loadingMessage.set('No se encontraron recursos que coincidan con tu búsqueda.');
+        }
+      }),
+      catchError((err: HttpErrorResponse) => {
+        // Error: Manejamos el error
+        console.error('Error al cargar recursos:', err);
+        this.loadingMessage.set('Error al cargar recursos. Intenta de nuevo más tarde.');
+        return of(null); // Devolvemos un observable nulo para que la app no se rompa
+      })
+    ).subscribe();
+  }
 }

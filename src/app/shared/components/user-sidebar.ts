@@ -13,12 +13,10 @@ import { faUser, faPlus } from '@fortawesome/free-solid-svg-icons';
     <aside class="sidebar-container">
 
       <div class="profile-section">
-        <div class="profile-icon-wrapper">
-          <div class="profile-icon">
-            <fa-icon [icon]="iconUser"></fa-icon>
-          </div>
+        <div class="profile-info">
+          <fa-icon [icon]="iconUser" class="profile-icon"></fa-icon>
+          <span class="profile-name">Usuario</span>
         </div>
-        <span class="profile-name">Usuario</span>
       </div>
 
       <div class="stats-section">
@@ -53,66 +51,57 @@ import { faUser, faPlus } from '@fortawesome/free-solid-svg-icons';
   `,
   styles: [`
     :host {
-      display: block;
-      width: 100%;
-      max-width: 300px;
-      font-family: 'Poppins', sans-serif;
-
-      /* CAMBIO 2: ¡LA MAGIA!
-         Se "pegará" a 100px desde el top cuando hagas scroll,
-         pero se quedará dentro de su columna.
-      */
-      position: sticky;
-      top: 100px; /* 80px de navbar + 20px de espacio */
-    }
-
-    .sidebar-container {
-      /* CAMBIO 3: Fondo BLANCO y sombra */
+      position: fixed;
+      top: 50px;
+      right: 0;
+      width: 300px;
+      height: 100vh;
       background-color: #FFFFFF;
-      border-radius: 12px;
-      padding: 25px 20px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      box-shadow: -4px 0 20px rgba(0, 0, 0, 0.08);
+      font-family: 'Poppins', sans-serif;
+      z-index: 100;
+      overflow-y: auto;
+      padding: 30px 20px;
     }
 
-    /* CAMBIO 4: Perfil (basado en tu imagen deseada) */
     .profile-section {
       display: flex;
-      flex-direction: column; /* Apilado vertical */
-      align-items: center; /* Centrado */
-      gap: 10px;
-      padding-bottom: 20px;
-      border-bottom: 1px solid #E7E7EE;
-    }
-    .profile-icon-wrapper {
-      /* Contenedor para el ícono */
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background-color: #E5DFFF; /* Morado claro */
-      display: grid;
-      place-items: center;
-    }
-    .profile-icon {
-      color: #240334; /* Ícono morado oscuro */
-      font-size: 1.3rem;
-    }
-    .profile-name {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: #0D8EFF; /* ¡Color AZUL! */
+      justify-content: center;
+      margin-top: 30px;
+      margin-bottom: 25px;
     }
 
-    /* Estadísticas */
+    .profile-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .profile-icon {
+      font-size: 1.6rem;
+      color: #240334;
+      background-color: #E5DFFF;
+      border-radius: 50%;
+      padding: 10px;
+    }
+
+    .profile-name {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #0D8EFF;
+    }
+
     .stats-section {
       display: flex;
       justify-content: space-around;
       text-align: center;
-      padding: 20px 0;
+      padding: 15px 0;
+      border-top: 1px solid #E7E7EE;
       border-bottom: 1px solid #E7E7EE;
     }
     .stat-item strong {
       display: block;
-      font-size: 1.25rem;
+      font-size: 1.2rem;
       font-weight: 700;
       color: #000;
     }
@@ -122,12 +111,11 @@ import { faUser, faPlus } from '@fortawesome/free-solid-svg-icons';
       color: #555;
     }
 
-    /* Navegación */
     .nav-section {
       display: flex;
       flex-direction: column;
       gap: 15px;
-      padding: 20px 0;
+      padding: 25px 0;
     }
     .nav-link {
       font-size: 1rem;
@@ -139,16 +127,19 @@ import { faUser, faPlus } from '@fortawesome/free-solid-svg-icons';
       color: #0D8EFF;
     }
 
-    /* Botón de Subir */
     .action-section {
-      margin-top: 10px;
+      display: flex;
+      justify-content: center;
+      margin-top: 40px; 
     }
+
     .btn-upload {
       display: flex;
       align-items: center;
       justify-content: center;
+      margin-top: 150px;
       gap: 10px;
-      width: 100%;
+      width: 200px;
       padding: 12px;
       border: none;
       border-radius: 50px;
@@ -158,9 +149,17 @@ import { faUser, faPlus } from '@fortawesome/free-solid-svg-icons';
       font-weight: 700;
       text-decoration: none;
       cursor: pointer;
+      transition: background-color 0.2s ease-in-out;
     }
+
     .btn-upload:hover {
       background-color: #0056b3;
+    }
+
+    @media (min-width: 1024px) {
+      body, .main-content {
+        margin-right: 320px !important;
+      }
     }
   `]
 })
