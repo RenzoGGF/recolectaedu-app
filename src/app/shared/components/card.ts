@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
     <div class="card-container">
 
       <div class="card-header">
-        <img src="/assets/images/logo.png" alt="Logo RecolectaEdu" class="card-logo-img">
+        <img src="logo.png" alt="Logo RecolectaEdu" class="card-logo-img">
         <span class="card-logo-text">RecolectaEdu</span>
       </div>
 
@@ -23,7 +23,7 @@ import { CommonModule } from '@angular/common';
     :host {
       display: block;
       width: 100%;
-      max-width: 450px; /* Ancho máximo de la tarjeta (ajusta según Figma) */
+      max-width: 450px;
       font-family: 'Poppins', sans-serif;
     }
 
@@ -31,9 +31,9 @@ import { CommonModule } from '@angular/common';
       background-color: #FFFFFF;
       border-radius: 15px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-      padding: 30px 40px; /* Ajusta el padding interno de la tarjeta */
+      padding: 30px 40px;
       z-index: 1;
-      text-align: center; /* Centra el logo y el texto de bienvenida */
+      text-align: center;
     }
 
     .card-header {
@@ -41,13 +41,13 @@ import { CommonModule } from '@angular/common';
     }
 
     .card-logo-img {
-      height: 60px; /* Tamaño del logo en la tarjeta (ajusta según Figma) */
+      height: 60px;
       margin-right: 10px;
       vertical-align: middle;
     }
 
     .card-logo-text {
-      font-size: 28px; /* Tamaño del texto del logo (ajusta según Figma) */
+      font-size: 28px;
       font-weight: 700;
       color: #240334;
       vertical-align: middle;

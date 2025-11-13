@@ -29,9 +29,9 @@ import { faTimes } from '@fortawesome/free-solid-svg-icons';
         <div class="form-row">
           <div class="form-group">
             <label for="orden">Orden</label>
-            <select id="orden" formControlName="orden">
-              <option value="recientes">Recientes</option>
-              <option value="relevantes">Relevantes</option>
+            <select id="orden" formControlName="ordenarPor">
+              <option value="RECIENTES">Recientes</option>
+              <option value="RELEVANTES">Relevantes</option>
             </select>
           </div>
 
@@ -72,11 +72,9 @@ import { faTimes } from '@fortawesome/free-solid-svg-icons';
       font-family: 'Poppins', sans-serif;
     }
     .main-content {
-  margin-right: 320px; 
-  padding-right: 20px;
-}
-
-
+      margin-right: 320px;
+      padding-right: 20px;
+    }
     .modal-overlay {
       position: absolute;
       top: 0;
@@ -86,7 +84,6 @@ import { faTimes } from '@fortawesome/free-solid-svg-icons';
       background-color: rgba(0, 0, 0, 0.5);
       backdrop-filter: blur(4px);
     }
-
     .modal-container {
       position: relative;
       z-index: 1001;
@@ -98,7 +95,6 @@ import { faTimes } from '@fortawesome/free-solid-svg-icons';
       max-width: 600px;
       color: #000;
     }
-
     .modal-header {
       display: flex;
       justify-content: space-between;
@@ -110,10 +106,9 @@ import { faTimes } from '@fortawesome/free-solid-svg-icons';
       font-weight: 700;
       color: #000;
       margin: 0;
-      /* Centramos el título (el botón de cerrar lo empuja) */
       flex: 1;
       text-align: center;
-      margin-left: 30px; /* Espacio para compensar el botón X */
+      margin-left: 30px;
     }
     .btn-close {
       background: none;
@@ -122,9 +117,6 @@ import { faTimes } from '@fortawesome/free-solid-svg-icons';
       color: #8A8A8A;
       cursor: pointer;
     }
-
-    /* --- INICIO: CAMBIOS DE CSS --- */
-
     .form-row {
       display: flex;
       gap: 20px;
@@ -148,50 +140,40 @@ import { faTimes } from '@fortawesome/free-solid-svg-icons';
     .form-group select {
       width: 100%;
       padding: 12px 14px;
-      /* 1. Borde más oscuro */
       border: 1px solid #AAA;
-      /* 2. Más redondeado */
       border-radius: 25px;
       font-size: 1rem;
       font-family: 'Poppins', sans-serif;
       font-weight: 600;
     }
-
-    /* 3. Estilos de los botones */
     .modal-actions {
       display: flex;
-      /* 4. Apilados verticalmente */
       flex-direction: column;
-      /* 5. Centrados */
       align-items: center;
-      gap: 10px; /* Espacio entre botones */
+      gap: 10px;
       margin-top: 20px;
       padding-top: 0;
-      border-top: none; /* Sin línea divisoria */
+      border-top: none;
     }
     .btn {
-      padding: 12px 20px; /* Un poco más de padding vertical */
+      padding: 12px 20px;
       border: none;
       border-radius: 50px;
       font-weight: 700;
       font-size: 0.9rem;
       cursor: pointer;
-      /* 6. Ancho fijo para ambos botones */
       width: 250px;
       max-width: 100%;
     }
-
-    /* 7. ¡BOTÓN AZUL! */
     .btn-clear {
-      background-color: #0D8EFF; /* Azul de tu paleta */
+      background-color: #0D8EFF;
       color: #FFFFFF;
     }
     .btn-clear:hover {
-      background-color: #0056b3; /* Azul más oscuro */
+      background-color: #0056b3;
     }
-
     .btn-apply {
-      background-color: #32CD32; /* Verde de tu paleta */
+      background-color: #32CD32;
       color: #FFFFFF;
     }
     .btn-apply:hover {
@@ -208,7 +190,7 @@ export class AdvancedSearchComponent {
 
   constructor(private fb: FormBuilder) {
     this.filterForm = this.fb.group({
-      orden: ['recientes'],
+      ordenarPor: 'RECIENTES',
       universidad: [''],
       autor: ['']
     });
@@ -220,7 +202,7 @@ export class AdvancedSearchComponent {
 
   onClear() {
     this.filterForm.reset({
-      orden: 'recientes',
+      ordenarPor: 'RECIENTES',
       universidad: '',
       autor: ''
     });
