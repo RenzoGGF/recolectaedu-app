@@ -42,5 +42,11 @@ export class ResourceService {
     return this.http.get<Resource[]>(url, { params });
   }
 
+  getRecientesPorCurso(cursoId: number): Observable<Resource[]> {
+
+    const url = `${this.baseUrl}/recursos/curso/${cursoId}/recientes`;
+
+    return this.http.get<Resource[]>(url);
+  }
 
 }
