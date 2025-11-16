@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import {RecursoValoradoResponse, Resource, SearchResourceParams} from '../models/resource.model';
+import { Resource, SearchResourceParams } from '../models/resource.model';
 
 @Injectable({
   providedIn: 'root'
@@ -47,12 +47,6 @@ export class ResourceService {
     const url = `${this.baseUrl}/recursos/curso/${cursoId}/recientes`;
 
     return this.http.get<Resource[]>(url);
-  }
-
-  getMasValoradosPorCurso(cursoId: number): Observable<RecursoValoradoResponse[]> {
-    const url = `${this.baseUrl}/recursos/curso/${cursoId}/mas-valorados`;
-
-    return this.http.get<RecursoValoradoResponse[]>(url);
   }
 
 }
