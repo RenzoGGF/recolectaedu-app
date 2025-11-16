@@ -177,3 +177,33 @@
   font-size: 0.9rem;
   color: #555;
 }
+
+.resource-main-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.resource-main-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.resource-rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 20px;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.resource-rating {
+  font-size: 1rem;
+  color: #000;
+}
+
+.pulgar-arriba {
+  color: #32CD32;
+}
