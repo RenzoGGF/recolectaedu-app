@@ -26,3 +26,15 @@ export interface SearchResourceParams {
   universidad?: string;
   ordenarPor?: string;
 }
+
+export interface RecursoValoradoResponse {
+  id_recurso: number;
+  titulo: string;
+  descripcion: string;
+  ano: number;
+  periodo: number;
+  votos_utiles: number;
+  votos_no_utiles: number,
+  votos_netos: number,
+  actualizado_el: string;
+}
