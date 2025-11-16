@@ -1,0 +1,109 @@
+<div class="course-header-block">
+  <div class="course-header">
+    <div class="header-left">
+      <fa-icon [icon]="iconFolder" class="header-folder-icon"></fa-icon>
+      <div class="header-info">
+        <h1>{{ courseName() }}</h1>
+        <span>Documentos totales [{{ totalDocs() }}]</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="internal-search">
+        <input placeholder="Busca documentos en este curso" type="text">
+        <fa-icon [icon]="iconSearch" class="search-icon"></fa-icon>
+      </div>
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <div class="sort-links">
+      <button
+        (click)="setSort('recientes')"
+        [class.active-sort]="activeSort() === 'recientes'"
+        class="sort-link"
+        type="button">
+        Recientes
+      </button>
+      <button
+        (click)="setSort('valoracion')"
+        [class.active-sort]="activeSort() === 'valoracion'"
+        class="sort-link"
+        type="button">
+        Valoración
+      </button>
+    </div>
+
+    <div class="filter-group">
+      <select class="type-filter">
+        <option value="">Tipo archivo</option>
+        <option value="ARCHIVO">ARCHIVO</option>
+        <option value="ENLACE">ENLACE</option>
+        <option value="TEXTO">TEXTO</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<div class="resource-group">
+  <h2>Apuntes</h2>
+  <div class="results-list">
+    @for (resource of filterResources('Apuntes'); track resource.id_recurso) {
+      <div class="resource-card">
+        <div class="resource-image"><span>[IMG]</span></div>
+        <div class="resource-content">
+          <h3 class="resource-title">{{ resource.titulo }}</h3>
+          <span class="creation-date">{{ resource.creado_el | date:'yyyy/MM/dd' }}</span>
+          <span class="format-type">{{ resource.formato }}</span>
+        </div>
+      </div>
+    } @empty {
+      <p>{{ loadingMessage() }}</p>
+    }
+  </div>
+</div>
+
+<div class="resource-group">
+  <h2>Prácticas</h2>
+  <div class="results-list">
+    @for (resource of filterResources('Practicas'); track resource.id_recurso) {
+      <div class="resource-card">
+        <div class="resource-image"><span>[IMG]</span></div>
+        <div class="resource-content">
+          <h3 class="resource-title">{{ resource.titulo }}</h3>
+          <span class="creation-date">{{ resource.creado_el | date:'yyyy/MM/dd' }}</span>
+          <span class="format-type">{{ resource.formato }}</span>
+        </div>
+      </div>
+    }
+  </div>
+</div>
+<div class="resource-group">
+  <h2>Ejercicios</h2>
+  <div class="results-list">
+    @for (resource of filterResources('Ejercicios'); track resource.id_recurso) {
+      <div class="resource-card">
+        <div class="resource-image"><span>[IMG]</span></div>
+        <div class="resource-content">
+          <h3 class="resource-title">{{ resource.titulo }}</h3>
+          <span class="creation-date">{{ resource.creado_el | date:'yyyy/MM/dd' }}</span>
+          <span class="format-type">{{ resource.formato }}</span>
+        </div>
+      </div>
+    }
+  </div>
+</div>
+<div class="resource-group">
+  <h2>Otros</h2>
+  <div class="results-list">
+    @for (resource of filterResources('Otros'); track resource.id_recurso) {
+      <div class="resource-card">
+        <div class="resource-image"><span>[IMG]</span></div>
+        <div class="resource-content">
+          <h3 class="resource-title">{{ resource.titulo }}</h3>
+          <span class="creation-date">{{ resource.creado_el | date:'yyyy/MM/dd' }}</span>
+          <span class="format-type">{{ resource.formato }}</span>
+        </div>
+      </div>
+    }
+  </div>
+</div>
