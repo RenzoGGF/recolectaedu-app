@@ -35,5 +35,13 @@ export const routes: Routes = [
     component: SearchLayoutComponent,
     loadChildren: () =>
       import('./features/course/course.routes').then(m => m.COURSE_ROUTES)
+  },
+
+  {
+    path: 'recursos',
+    component: SearchLayoutComponent,
+    loadChildren: () =>
+      import('./features/recursos/recursos.routes').then(m => m.RECURSOS_ROUTES)
   }
+
 ];

@@ -1,6 +1,7 @@
 export type ResourceType = 'Apuntes' | 'Practicas' | 'Ejercicios' | 'Otros';
 export type ResourceFormat = 'TEXTO' | 'ENLACE' | 'ARCHIVO';
-
+export type FormatoRecurso = 'ARCHIVO' | 'ENLACE' | 'TEXTO';
+export type Tipo_recurso = 'Apuntes' | 'Practicas' | 'Ejercicios' | 'Otros';
 
 export interface Resource {
   id_recurso: number;
@@ -38,3 +39,4 @@ export interface RecursoValoradoResponse {
   votos_netos: number,
   actualizado_el: string;
 }
+
