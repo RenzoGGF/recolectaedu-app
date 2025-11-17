@@ -41,7 +41,7 @@ import { faUser, faPlus } from '@fortawesome/free-solid-svg-icons';
       </nav>
 
       <div class="action-section">
-        <a [routerLink]="['/upload']" class="btn-upload">
+        <a [routerLink]="['/recursos/publicar']" class="btn-upload">
           <fa-icon [icon]="iconPlus"></fa-icon>
           Subir Recurso
         </a>
