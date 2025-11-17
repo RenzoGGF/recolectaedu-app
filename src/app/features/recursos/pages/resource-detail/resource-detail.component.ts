@@ -5,10 +5,10 @@ import {BibliotecaService} from '../../../../core/services/biblioteca.service';
 import {AuthService} from '../../../../core/services/auth.service';
 import {Resource} from '../../../../core/models/resource.model';
 import {BibliotecaResponse} from '../../../../core/models/biblioteca.model';
-import {HttpErrorResponse} from '@angular/common/http';
 import {DatePipe} from '@angular/common';
 import {CourseService} from '../../../../core/services/course.service';
 import {Course} from '../../../../core/models/course.model';
+import {HttpErrorResponse} from '@angular/common/http';
 
 @Component({
   selector: 'app-resource-detail',
@@ -67,7 +67,6 @@ export class ResourceDetailComponent implements OnInit {
         this.courseService.getCursoById(res.id_curso).subscribe({
           next: (curso) => {
             this.curso.set(curso);
-            // Enriquecemos el recurso para poder usar nombreCurso/nombreUniversidad en la vista
             this.recurso.update(r =>
               r
                 ? {
@@ -79,14 +78,14 @@ export class ResourceDetailComponent implements OnInit {
             );
             this.loading.set(false);
           },
-          error: (err) => {
+          error: (err: HttpErrorResponse) => {
             console.error('Error al cargar curso:', err);
             // Aunque falle el curso, mostramos el recurso igual
             this.loading.set(false);
           }
         });
       },
-      error: (err) => {
+      error: (err:HttpErrorResponse) => {
         console.error(err);
         this.error.set('No se pudo cargar el recurso.');
         this.loading.set(false);
@@ -99,7 +98,7 @@ export class ResourceDetailComponent implements OnInit {
       next: (biblioteca: BibliotecaResponse) => {
         this.idBiblioteca = biblioteca.id_biblioteca;
       },
-      error: (err) => {
+      error: (err: HttpErrorResponse) => {
         console.error(err);
         this.idBiblioteca = null;
       }
@@ -122,7 +121,7 @@ export class ResourceDetailComponent implements OnInit {
           this.guardando.set(false);
           this.guardado.set(true);
         },
-        error: (err) => {
+        error: (err: HttpErrorResponse) => {
           console.error(err);
           this.guardando.set(false);
           this.error.set('No se pudo guardar el recurso en tu biblioteca.');
