@@ -7,6 +7,8 @@ import {Resource} from '../../../../core/models/resource.model';
 import {BibliotecaResponse} from '../../../../core/models/biblioteca.model';
 import {HttpErrorResponse} from '@angular/common/http';
 import {DatePipe} from '@angular/common';
+import {CourseService} from '../../../../core/services/course.service';
+import {Course} from '../../../../core/models/course.model';
 
 @Component({
   selector: 'app-resource-detail',
@@ -19,10 +21,13 @@ import {DatePipe} from '@angular/common';
 export class ResourceDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private resourceService = inject(ResourceService);
+  private courseService = inject(CourseService);
   private bibliotecaService = inject(BibliotecaService);
   private authService = inject(AuthService);
 
   recurso = signal<Resource | null>(null);
+  curso = signal<Course | null>(null);
+
   loading = signal(true);
   error = signal<string | null>(null);
 
@@ -43,23 +48,43 @@ export class ResourceDetailComponent implements OnInit {
       return;
     }
 
-    // Cargar siempre el recurso (vista pública)
-    this.cargarRecurso(idRecurso);
+    this.cargarRecursoYCurso(idRecurso);
 
-    // Si está autenticado, cargamos la biblioteca para poder guardar
     if (this.isAuthenticated()) {
       this.cargarBibliotecaUsuario();
     }
   }
 
-  private cargarRecurso(idRecurso: number): void {
+  private cargarRecursoYCurso(idRecurso: number): void {
     this.loading.set(true);
     this.error.set(null);
 
     this.resourceService.getResourceById(idRecurso).subscribe({
-      next: (recurso) => {
-        this.recurso.set(recurso);
-        this.loading.set(false);
+      next: (res: Resource) => {
+        this.recurso.set(res);
+
+        // Llamada extra para completar info del curso
+        this.courseService.getCursoById(res.id_curso).subscribe({
+          next: (curso) => {
+            this.curso.set(curso);
+            // Enriquecemos el recurso para poder usar nombreCurso/nombreUniversidad en la vista
+            this.recurso.update(r =>
+              r
+                ? {
+                  ...r,
+                  nombreCurso: curso.nombre,
+                  nombreUniversidad: curso.universidad
+                }
+                : r
+            );
+            this.loading.set(false);
+          },
+          error: (err) => {
+            console.error('Error al cargar curso:', err);
+            // Aunque falle el curso, mostramos el recurso igual
+            this.loading.set(false);
+          }
+        });
       },
       error: (err) => {
         console.error(err);
@@ -76,7 +101,6 @@ export class ResourceDetailComponent implements OnInit {
       },
       error: (err) => {
         console.error(err);
-        // Si falla, solo deshabilitamos guardar
         this.idBiblioteca = null;
       }
     });
@@ -98,7 +122,7 @@ export class ResourceDetailComponent implements OnInit {
           this.guardando.set(false);
           this.guardado.set(true);
         },
-        error: (err: HttpErrorResponse) => {
+        error: (err) => {
           console.error(err);
           this.guardando.set(false);
           this.error.set('No se pudo guardar el recurso en tu biblioteca.');
@@ -106,7 +130,6 @@ export class ResourceDetailComponent implements OnInit {
       });
   }
 
-  // Helpers para la plantilla
   esTexto(): boolean {
     return this.recurso()?.formato === 'TEXTO';
   }

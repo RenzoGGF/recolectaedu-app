@@ -23,7 +23,7 @@
 
   @if (loading()) {
     <p>Cargando recurso...</p>
-  } @else if (error()) {
+  } @else if (error() && !recurso()) {
     <p class="error-text">{{ error() }}</p>
   } @else if (recurso()) {
     <div class="resource-layout">
@@ -47,7 +47,6 @@
           } @else if (esArchivo()) {
             <div class="resource-content-file">
               <p>Archivo adjunto</p>
-              <!-- aquí luego irá el visor/descarga real -->
             </div>
           }
         </div>
@@ -98,9 +97,11 @@
           </p>
         }
 
-        <p class="error-text" *ngIf="error()">
-          {{ error() }}
-        </p>
+        @if (error()) {
+          <p class="error-text">
+            {{ error() }}
+          </p>
+        }
       </aside>
     </div>
   }
