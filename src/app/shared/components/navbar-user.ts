@@ -21,7 +21,6 @@ import { AuthService } from '../../core/services/auth.service';
       </div>
 
       <form class="navbar-search" [formGroup]="searchForm" (ngSubmit)="onSearch()">
-
         <button type="submit" class="search-icon-button">
           <fa-icon [icon]="iconSearch" class="search-icon"></fa-icon>
         </button>
@@ -37,7 +36,28 @@ import { AuthService } from '../../core/services/auth.service';
 
         @if (authService.isAuthenticated()) {
           <a [routerLink]="['/premium']" class="nav-link-premium">Premium</a>
-          <a [routerLink]="['/profile']" class="nav-link-user">Usuario</a>
+
+          <div class="user-menu">
+            <button
+              type="button"
+              class="user-button"
+              (click)="toggleMenu()">
+              {{ authService.getUserName() || 'Usuario' }}
+              <span class="arrow">▾</span>
+            </button>
+
+            @if (menuOpen) {
+              <div class="user-dropdown">
+                <button type="button" (click)="goToProfile()">
+                  Mi perfil
+                </button>
+                <button type="button" (click)="logout()">
+                  Cerrar sesión
+                </button>
+              </div>
+            }
+          </div>
+
         } @else {
           <a [routerLink]="['/auth/login']" class="btn btn-login">
             Iniciar sesión
@@ -72,6 +92,7 @@ import { AuthService } from '../../core/services/auth.service';
       font-size: 24px;
       font-weight: 700;
     }
+
     .logo-img {
       height: 45px;
       margin-right: 10px;
@@ -97,6 +118,7 @@ import { AuthService } from '../../core/services/auth.service';
       color: #8A8A8A;
       cursor: pointer;
     }
+
     .search-icon {
       font-size: 1rem;
     }
@@ -117,6 +139,7 @@ import { AuthService } from '../../core/services/auth.service';
       align-items: center;
       gap: 30px;
     }
+
     .nav-link {
       color: #FFFFFF;
       text-decoration: none;
@@ -124,27 +147,33 @@ import { AuthService } from '../../core/services/auth.service';
       font-size: 14px;
       white-space: nowrap;
     }
+
     .nav-link:hover {
       text-decoration: underline;
     }
+
     .nav-link-premium {
       color: #FFFFFF;
       text-decoration: none;
       font-weight: 600;
       font-size: 14px;
     }
+
     .nav-link-premium:hover {
       text-decoration: underline;
     }
+
     .nav-link-user {
       color: #0D8EFF;
       text-decoration: none;
       font-weight: 600;
       font-size: 14px;
     }
+
     .nav-link-user:hover {
       text-decoration: underline;
     }
+
     .btn {
       padding: 10px 24px;
       border: none;
@@ -155,12 +184,65 @@ import { AuthService } from '../../core/services/auth.service';
       cursor: pointer;
       white-space: nowrap;
     }
+
     .btn-login {
       background-color: #32CD32;
       color: #FFFFFF;
     }
+
     .btn-login:hover {
       background-color: #228B22;
+    }
+
+    /* === Dropdown Usuario === */
+
+    .user-menu {
+      position: relative;
+    }
+
+    .user-button {
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1px solid #FFFFFF;
+      background-color: transparent;
+      color: #FFFFFF;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .user-button .arrow {
+      font-size: 10px;
+    }
+
+    .user-dropdown {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 8px);
+      background-color: #FFFFFF;
+      color: #240334;
+      border-radius: 12px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+      padding: 6px 0;
+      min-width: 160px;
+      z-index: 50;
+    }
+
+    .user-dropdown button {
+      width: 100%;
+      padding: 8px 16px;
+      border: none;
+      background: none;
+      text-align: left;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .user-dropdown button:hover {
+      background-color: #f5f5f5;
     }
   `]
 })
@@ -171,11 +253,27 @@ export class NavbarUserComponent {
   private router = inject(Router);
 
   searchForm: FormGroup;
+  menuOpen = false;
 
   constructor(public authService: AuthService) {
     this.searchForm = this.fb.group({
       keyword: ['']
     });
+  }
+
+  toggleMenu(): void {
+    this.menuOpen = !this.menuOpen;
+  }
+
+  goToProfile(): void {
+    this.menuOpen = false;
+    // Ajusta la ruta cuando tengas la página de perfil lista
+    this.router.navigate(['/profile']);
+  }
+
+  logout(): void {
+    this.menuOpen = false;
+    this.authService.logout(); // ya navega a /auth/login
   }
 
   onSearch(): void {
