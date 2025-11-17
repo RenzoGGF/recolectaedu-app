@@ -23,7 +23,7 @@ export const routes: Routes = [
     loadChildren: () =>
       import('./features/user/user.routes').then(m => m.USER_ROUTES)
   },
-  
+
   {
     path: 'search',
     component: SearchLayoutComponent,
@@ -56,6 +56,12 @@ export const routes: Routes = [
     component: SearchLayoutComponent,
     loadChildren: () =>
       import('./features/recursos/recursos.routes').then(m => m.RECURSOS_ROUTES)
+  },
+  {
+    path: 'foro',
+    component: SearchLayoutComponent,
+    loadChildren: () =>
+      import('./features/forum/forum.routes').then(m => m.FORUM_ROUTES)
   }
 
 ];
