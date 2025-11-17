@@ -1,7 +1,8 @@
-import { Routes } from '@angular/router';
-import { LandingLayoutComponent } from './shared/layouts/landing-layout';
-import { AuthLayoutComponent } from './shared/layouts/auth.layout';
-import { SearchLayoutComponent } from './shared/layouts/search.layout';
+import {Routes} from '@angular/router';
+import {LandingLayoutComponent} from './shared/layouts/landing-layout';
+import {AuthLayoutComponent} from './shared/layouts/auth.layout';
+import {SearchLayoutComponent} from './shared/layouts/search.layout';
+import {authGuard} from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -21,7 +22,12 @@ export const routes: Routes = [
     loadChildren: () =>
       import('./features/search/search.routes').then(m => m.SEARCH_ROUTES)
   },
-
+  {
+    path: 'biblioteca',
+    component: LandingLayoutComponent,
+    canActivate: [authGuard],
+    loadChildren: () => import('./features/biblioteca/biblioteca.routes').then(m => m.BIBLIOTECA_ROUTES)
+  },
   {
     path: 'instituciones',
     component: SearchLayoutComponent,
