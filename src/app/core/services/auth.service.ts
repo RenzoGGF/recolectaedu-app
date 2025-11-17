@@ -1,44 +1,97 @@
-import { Injectable } from '@angular/core';
+// src/app/core/services/auth.service.ts
+import { Injectable, inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { environment } from '../../../environments/environment';
+import { AuthRequest, RegisterRequest } from '../models/auth-request.model';
+import { AuthResponse } from '../models/auth-response.model';
+import { Observable, tap } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
+  private http = inject(HttpClient);
+  private router = inject(Router);
 
-  constructor() { }
+  private apiUrl = `${environment.apiUrl}/auth`;
 
-  // --- Métodos "Stub" (Placenta) para evitar errores ---
-  // Llenaremos esto con lógica real cuando hagamos el login
+  // Estado de autenticación compartido
+  private _authState = signal<AuthResponse | null>(null);
+  authState = this._authState.asReadonly();
 
-  /**
-   * Verifica si el usuario está autenticado.
-   * Por ahora, diremos que no lo está.
-   */
-  isAuthenticated(): boolean {
-    return false;
+  constructor() {
+    // Intentar restaurar sesión desde localStorage
+    const stored = localStorage.getItem('recolectaedu_auth');
+    if (stored) {
+      try {
+        const parsed: AuthResponse = JSON.parse(stored);
+        this._authState.set(parsed);
+      } catch {
+        localStorage.removeItem('recolectaedu_auth');
+      }
+    }
   }
 
   /**
-   * Verifica si el usuario es administrador.
-   * Por ahora, diremos que no lo es.
+   * Registro de usuario: POST /auth/register
+   */
+  register(payload: RegisterRequest): Observable<AuthResponse> {
+    return this.http
+      .post<AuthResponse>(`${this.apiUrl}/register`, payload)
+      .pipe(
+        tap((res) => {
+          this._authState.set(res);
+          localStorage.setItem('recolectaedu_auth', JSON.stringify(res));
+        })
+      );
+  }
+
+  /**
+   * Login: POST /auth/login
+   */
+  login(payload: AuthRequest): Observable<AuthResponse> {
+    return this.http
+      .post<AuthResponse>(`${this.apiUrl}/login`, payload)
+      .pipe(
+        tap((res) => {
+          this._authState.set(res);
+          localStorage.setItem('recolectaedu_auth', JSON.stringify(res));
+        })
+      );
+  }
+
+  /**
+   * ¿Hay sesión activa?
+   */
+  isAuthenticated(): boolean {
+    return !!this._authState();
+  }
+
+  /**
+   * ¿Es admin?
+   * Por ahora, lo dejamos como en el stub original: siempre false.
+   * Más adelante, cuando el backend envíe el rol en el token o en el AuthResponse,
+   * aquí podemos decodificar/ver el rol y devolver true/false real.
    */
   isAdmin(): boolean {
     return false;
   }
 
   /**
-   * Obtiene el token de autenticación.
-   * Por ahora, no hay token.
+   * Token sin el prefijo Bearer
    */
   getToken(): string | null {
-    return null;
+    return this._authState()?.token ?? null;
   }
 
-  /**
-   * Cierra la sesión del usuario.
-   * Por ahora, no hace nada.
-   */
+  getUserName(): string | null {
+    return this._authState()?.name ?? null;
+  }
+
   logout(): void {
-    console.log('logout() llamado');
+    this._authState.set(null);
+    localStorage.removeItem('recolectaedu_auth');
+    this.router.navigate(['/auth/login']);
   }
 }
