@@ -1,36 +1,37 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-card',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   template: `
     <div class="card-container">
-
       <div class="card-header">
-        <img src="logo.png" alt="Logo RecolectaEdu" class="card-logo-img">
-        <span class="card-logo-text">RecolectaEdu</span>
+        <a [routerLink]="['/']" class="card-logo-link">
+          <img src="logo.png" alt="RecolectaEdu" class="card-logo-img" />
+          <span class="card-logo-text">RecolectaEdu</span>
+        </a>
       </div>
 
       <div class="card-content">
         <ng-content></ng-content>
       </div>
-
     </div>
   `,
   styles: [`
     :host {
       display: block;
       width: 100%;
-      max-width: 960;
+      max-width: 960px;
       margin: 0 auto;
       font-family: 'Poppins', sans-serif;
     }
 
     .card-container {
       background-color: #FFFFFF;
-      border-radius: 15px;
+      border-radius: 24px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
       padding: 40px 60px;
       z-index: 1;
@@ -39,23 +40,28 @@ import { CommonModule } from '@angular/common';
 
     .card-header {
       margin-bottom: 25px;
+      text-align: left;
+    }
+
+    .card-logo-link {
+      display: inline-flex;
+      align-items: center;
+      text-decoration: none;
+      color: #240334;
+      gap: 8px;
     }
 
     .card-logo-img {
       height: 60px;
-      margin-right: 10px;
-      vertical-align: middle;
     }
 
     .card-logo-text {
       font-size: 28px;
       font-weight: 700;
       color: #240334;
-      vertical-align: middle;
     }
 
     .card-content {
-
       text-align: left;
     }
 
