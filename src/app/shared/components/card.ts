@@ -23,7 +23,8 @@ import { CommonModule } from '@angular/common';
     :host {
       display: block;
       width: 100%;
-      max-width: 450px;
+      max-width: 960;
+      margin: 0 auto;
       font-family: 'Poppins', sans-serif;
     }
 
@@ -31,7 +32,7 @@ import { CommonModule } from '@angular/common';
       background-color: #FFFFFF;
       border-radius: 15px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-      padding: 30px 40px;
+      padding: 40px 60px;
       z-index: 1;
       text-align: center;
     }
@@ -56,6 +57,17 @@ import { CommonModule } from '@angular/common';
     .card-content {
 
       text-align: left;
+    }
+
+    @media (max-width: 900px) {
+      :host {
+        max-width: 100%;
+      }
+
+      .card-container {
+        padding: 24px 20px;
+        border-radius: 16px;
+      }
     }
   `]
 })
