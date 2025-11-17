@@ -1,0 +1,107 @@
+<div class="resource-page">
+  <!-- Barra superior -->
+  <header class="resource-header">
+    <div class="header-left"></div>
+
+    <div class="header-right">
+      <button
+        class="btn-secondary"
+        [disabled]="!isAuthenticated()"
+      >
+        DEJAR RESEÑA
+      </button>
+
+      <button
+        class="btn-primary"
+        [disabled]="!isAuthenticated() || guardando() || guardado() || !recurso()"
+        (click)="guardarEnBiblioteca()"
+      >
+        {{ guardado() ? 'GUARDADO' : (guardando() ? 'GUARDANDO...' : 'GUARDAR') }}
+      </button>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <p>Cargando recurso...</p>
+  } @else if (error()) {
+    <p class="error-text">{{ error() }}</p>
+  } @else if (recurso()) {
+    <div class="resource-layout">
+      <!-- Panel izquierdo: contenido -->
+      <section class="resource-view">
+        <div class="resource-box">
+          <h2 class="resource-title">
+            {{ recurso()!.titulo }}
+          </h2>
+
+          @if (esTexto()) {
+            <div class="resource-content-text">
+              {{ recurso()!.contenido }}
+            </div>
+          } @else if (esEnlace()) {
+            <div class="resource-content-link">
+              <a [href]="recurso()!.contenido" target="_blank" rel="noopener">
+                {{ recurso()!.contenido }}
+              </a>
+            </div>
+          } @else if (esArchivo()) {
+            <div class="resource-content-file">
+              <p>Archivo adjunto</p>
+              <!-- aquí luego irá el visor/descarga real -->
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- Panel derecho: info del recurso -->
+      <aside class="resource-sidebar">
+        <h3 class="sidebar-title">{{ recurso()!.titulo }}</h3>
+        <p class="sidebar-subtitle">{{ recurso()!.descripcion }}</p>
+
+        <div class="sidebar-block">
+          <p class="sidebar-label">Curso:</p>
+          <p class="sidebar-text">
+            {{ recurso()!.nombreCurso || 'Curso no especificado' }}
+          </p>
+          <p class="sidebar-text">
+            {{ recurso()!.nombreUniversidad || 'Universidad no especificada' }}
+          </p>
+        </div>
+
+        <div class="sidebar-block">
+          <p class="sidebar-label">Tipo de recurso:</p>
+          <p class="sidebar-text">{{ recurso()!.tipo }}</p>
+        </div>
+
+        <div class="sidebar-block">
+          <p class="sidebar-label">Creado el:</p>
+          <p class="sidebar-text">
+            {{ recurso()!.creado_el | date:'dd/MM/yyyy' }}
+          </p>
+        </div>
+
+        <div class="sidebar-block">
+          <p class="sidebar-label">Autor:</p>
+          <p class="sidebar-text">{{ recurso()!.autorNombre }}</p>
+        </div>
+
+        <div class="sidebar-block sidebar-comments-placeholder">
+          <p class="sidebar-label">Comentarios</p>
+          <p class="sidebar-text">
+            Aquí irán los comentarios (solo para usuarios autenticados).
+          </p>
+        </div>
+
+        @if (!isAuthenticated()) {
+          <p class="auth-hint">
+            Inicia sesión para guardar este recurso en tu biblioteca o comentar.
+          </p>
+        }
+
+        <p class="error-text" *ngIf="error()">
+          {{ error() }}
+        </p>
+      </aside>
+    </div>
+  }
+</div>
