@@ -1,0 +1,182 @@
+<!-- src/app/features/recursos/pages/historial-aportes/historial-aportes.component.html -->
+
+<div class="historial-container">
+  
+  <!-- Header con título -->
+  <div class="page-header">
+    <h1>Tus aportes</h1>
+  </div>
+
+  <!-- Filtros y Ordenamiento -->
+  <div class="filters-bar">
+    <div class="filter-group">
+      <label for="tipoFiltro" class="filter-label">Filtrado por:</label>
+      <select 
+        id="tipoFiltro"
+        [(ngModel)]="tipoFiltro"
+        (change)="onTipoChange()"
+        class="filter-select">
+        @for (tipo of tiposRecurso; track tipo.value) {
+          <option [value]="tipo.value">{{ tipo.label }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="ordenamiento" class="filter-label">Ordenando por:</label>
+      <select 
+        id="ordenamiento"
+        [(ngModel)]="ordenamiento"
+        (change)="onOrdenamientoChange()"
+        class="filter-select">
+        @for (opcion of opcionesOrdenamiento; track opcion.value) {
+          <option [value]="opcion.value">{{ opcion.label }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Cargando tus aportes...</p>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (errorMessage()) {
+    <div class="alert alert-error">
+      <span class="alert-icon">⚠️</span>
+      {{ errorMessage() }}
+      <button class="btn-retry" (click)="loadAportes()">
+        Reintentar
+      </button>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (isEmpty()) {
+    <div class="empty-state">
+      <div class="empty-icon">📚</div>
+      <h2>Aún no tienes aportes</h2>
+      <p>Comparte tus recursos educativos con la comunidad</p>
+      <button class="btn btn-primary" (click)="irASubirRecurso()">
+        + Subir tu primer recurso
+      </button>
+    </div>
+  }
+
+  <!-- Lista de Aportes -->
+  @if (hasAportes() && !loading()) {
+    <div class="aportes-list">
+      
+      <!-- Info de resultados -->
+      <div class="results-info">
+        <p>
+          Mostrando {{ aportes().length }} de {{ totalElements() }} recursos
+        </p>
+      </div>
+
+      <!-- Cards de recursos -->
+      @for (aporte of aportes(); track aporte.id) {
+        <div class="aporte-card">
+          
+          <!-- Badge con iniciales del tipo -->
+          <div class="aporte-badge">
+            <span class="badge-text">{{ getTipoIniciales(aporte.tipo) }}</span>
+          </div>
+
+          <!-- Contenido del recurso -->
+          <div class="aporte-content">
+            
+            <!-- Título -->
+            <h3 class="aporte-titulo">{{ aporte.titulo }}</h3>
+            
+            <!-- Información del curso -->
+            <div class="aporte-info">
+              <span class="info-item curso">{{ aporte.cursoNombre }}</span>
+              <span class="info-separator">•</span>
+              <span class="info-item universidad">{{ aporte.universidad }}</span>
+              <span class="info-separator">•</span>
+              <span class="info-item year">{{ getAcademicYear(aporte.fechaCreacion) }}</span>
+            </div>
+
+            <!-- Tipo de formato -->
+            <div class="aporte-formato">
+              <span class="formato-badge">[{{ aporte.tipo }}]</span>
+            </div>
+
+            <!-- Metadata adicional -->
+            <div class="aporte-metadata">
+              <span class="metadata-item">
+                👍 {{ aporte.votosPositivos }}
+              </span>
+              <span class="metadata-item">
+                👎 {{ aporte.votosNegativos }}
+              </span>
+              <span class="metadata-item">
+                💬 {{ aporte.comentarios }}
+              </span>
+              <span class="metadata-item">
+                📅 {{ formatDate(aporte.fechaCreacion) }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Acciones (Editar/Eliminar - Deshabilitados por ahora) -->
+          <div class="aporte-actions">
+            <button 
+              class="btn-action btn-edit"
+              (click)="editarRecurso(aporte.id)"
+              disabled
+              title="Funcionalidad en desarrollo">
+              Editar
+            </button>
+            <button 
+              class="btn-action btn-delete"
+              (click)="eliminarRecurso(aporte.id)"
+              disabled
+              title="Funcionalidad en desarrollo">
+              Eliminar
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Paginación -->
+    @if (totalPages() > 1) {
+      <div class="pagination">
+        <button 
+          class="btn-page"
+          (click)="previousPage()"
+          [disabled]="currentPage() === 0">
+          ← Anterior
+        </button>
+
+        <div class="page-numbers">
+          @for (pageNum of [].constructor(totalPages()); track $index) {
+            <button 
+              class="btn-page-number"
+              [class.active]="currentPage() === $index"
+              (click)="goToPage($index)">
+              {{ $index + 1 }}
+            </button>
+          }
+        </div>
+
+        <button 
+          class="btn-page"
+          (click)="nextPage()"
+          [disabled]="isLastPage()">
+          Siguiente →
+        </button>
+      </div>
+
+      <div class="pagination-info">
+        Página {{ currentPage() + 1 }} de {{ totalPages() }}
+      </div>
+    }
+  }
+</div>

@@ -1,7 +1,10 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, tap, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { Aporte, RespuestaPagina, AportesParams } from '../models/aporte.model';
+import { HttpParams } from '@angular/common/http';
+
 
 @Injectable({
   providedIn: 'root'
@@ -54,4 +57,43 @@ export class UsuarioService {
       })
     );
   }
-}
+
+      /**
+   * US-08: Obtener historial de aportes de un usuario
+   * GET /api/v1/usuarios/{usuarioId}/aportes
+   */
+  getAportes(params: AportesParams): Observable<RespuestaPagina<Aporte>> {
+    const url = `${this.apiUrl}/${params.usuarioId}/aportes`;
+    
+    let httpParams = new HttpParams()
+      .set('page', (params.page || 0).toString())
+      .set('size', (params.size || 10).toString());
+    
+    if (params.tipo) {
+      httpParams = httpParams.set('tipo', params.tipo);
+    }
+    
+    if (params.cursoId) {
+      httpParams = httpParams.set('cursoId', params.cursoId.toString());
+    }
+    
+    if (params.sort && params.sort.length === 2) {
+      httpParams = httpParams.set('sort', params.sort.join(','));
+    }
+    
+    return this.http.get<RespuestaPagina<Aporte>>(url, { params: httpParams });
+  }
+
+  /**
+   * Obtener estadísticas resumidas del usuario
+   * TODO: Implementar cuando exista el endpoint
+   */
+  getUserStats(usuarioId: number): Observable<any> {
+    // Por ahora retornamos valores mock
+    return of({
+      totalSubidos: 0,
+      totalVotos: 0,
+      totalSeguidores: 0
+    });
+  }
+  }
