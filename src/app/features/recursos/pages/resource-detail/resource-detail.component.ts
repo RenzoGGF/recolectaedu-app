@@ -9,11 +9,15 @@ import {DatePipe} from '@angular/common';
 import {CourseService} from '../../../../core/services/course.service';
 import {Course} from '../../../../core/models/course.model';
 import {HttpErrorResponse} from '@angular/common/http';
+import {ResenaService} from '../../../../core/services/resena.service';
+import {ResenaCreateRequest, ResenaResponse} from '../../../../core/models/resena.model';
+import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 
 @Component({
   selector: 'app-resource-detail',
   imports: [
-    DatePipe
+    DatePipe,
+    ReactiveFormsModule
   ],
   templateUrl: './resource-detail.component.html',
   styleUrl: './resource-detail.component.css',
@@ -24,6 +28,8 @@ export class ResourceDetailComponent implements OnInit {
   private courseService = inject(CourseService);
   private bibliotecaService = inject(BibliotecaService);
   private authService = inject(AuthService);
+  private resenaService = inject(ResenaService);
+  private fb = inject(FormBuilder);
 
   recurso = signal<Resource | null>(null);
   curso = signal<Course | null>(null);
@@ -36,7 +42,20 @@ export class ResourceDetailComponent implements OnInit {
 
   isAuthenticated = computed(() => this.authService.isAuthenticated());
 
+  resenas = signal<ResenaResponse[]>([]);
+  loadingResenas = signal(false);
+  resenasError = signal<string | null>(null);
+
+  enviandoResena = signal(false);
+  errorResena = signal<string | null>(null);
+  editandoVoto = signal<Record<number, boolean>>({})
+
   private idBiblioteca: number | null = null;
+
+  resenaForm: FormGroup = this.fb.group({
+    contenido: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(255)]],
+    es_positivo: [null, [Validators.required]]
+  });
 
   ngOnInit(): void {
     const idParam = this.route.snapshot.paramMap.get('id');
@@ -49,6 +68,7 @@ export class ResourceDetailComponent implements OnInit {
     }
 
     this.cargarRecursoYCurso(idRecurso);
+    this.cargarResenas(idRecurso);
 
     if (this.isAuthenticated()) {
       this.cargarBibliotecaUsuario();
@@ -105,6 +125,24 @@ export class ResourceDetailComponent implements OnInit {
     });
   }
 
+  private cargarResenas(idRecurso: number): void {
+    this.loadingResenas.set(true);
+    this.resenasError.set(null);
+    this.resenas.set([]);
+
+    this.resenaService.getResenasPorRecurso(idRecurso).subscribe({
+      next: (lista) => {
+        this.resenas.set(lista);
+        this.loadingResenas.set(false);
+      },
+      error: (err) => {
+        console.error('Error al cargar reseñas:', err);
+        this.resenasError.set('No se pudieron cargar las reseñas.');
+        this.loadingResenas.set(false);
+      }
+    });
+  }
+
   guardarEnBiblioteca(): void {
     const recurso = this.recurso();
     if (!recurso || !this.idBiblioteca || this.guardando() || this.guardado()) {
@@ -129,6 +167,46 @@ export class ResourceDetailComponent implements OnInit {
       });
   }
 
+  enviarResena(): void {
+    const recurso = this.recurso();
+    if (!recurso || !this.isAuthenticated() || this.enviandoResena()) {
+      return;
+    }
+
+    if (this.resenaForm.invalid) {
+      this.resenaForm.markAllAsTouched();
+      this.errorResena.set('Revisa el contenido y si fue útil o no.');
+      return;
+    }
+
+    const { contenido, es_positivo } = this.resenaForm.value;
+
+    const payload: ResenaCreateRequest = {
+      id_recurso: recurso.id_recurso,
+      contenido,
+      es_positivo
+    };
+
+    this.enviandoResena.set(true);
+    this.errorResena.set(null);
+
+    this.resenaService.createResena(payload).subscribe({
+      next: (resenaCreada) => {
+        this.enviandoResena.set(false);
+        this.resenas.update(lista => [resenaCreada, ...lista]);
+        this.resenaForm.reset({
+          contenido: '',
+          es_positivo: null
+        });
+      },
+      error: (err: HttpErrorResponse) => {
+        console.error('Error al crear reseña:', err);
+        this.enviandoResena.set(false);
+        this.errorResena.set('No se pudo publicar la reseña. Inténtalo nuevamente.');
+      }
+    });
+  }
+
   esTexto(): boolean {
     return this.recurso()?.formato === 'TEXTO';
   }
@@ -139,5 +217,49 @@ export class ResourceDetailComponent implements OnInit {
 
   esArchivo(): boolean {
     return this.recurso()?.formato === 'ARCHIVO';
+  }
+
+  get contenidoCtrl() {
+    return this.resenaForm.get('contenido');
+  }
+
+  get esPositivoCtrl() {
+    return this.resenaForm.get('es_positivo');
+  }
+
+  estaEditandoVoto(idResena: number): boolean {
+    return this.editandoVoto()[idResena];
+  }
+
+  // Validación básica, solo por nombre del usuario
+  puedeEditarResena(resena: ResenaResponse): boolean {
+    const currentUserName = this.authService.getUserName?.();
+    return this.isAuthenticated() && !!currentUserName && currentUserName === resena.nombre_autor;
+  }
+
+  toggleVotoResena(resena: ResenaResponse): void {
+    if (!this.puedeEditarResena(resena)) {
+      return;
+    }
+
+    const nuevoVoto = !resena.es_positivo;
+
+    this.editandoVoto.update(state => ({ ...state, [resena.id_resena]: true }));
+
+    this.resenaService
+      .updateResenaPartial(resena.id_resena, { es_positivo: nuevoVoto })
+      .subscribe({
+        next: (resenaActualizada) => {
+          this.resenas.update(lista =>
+            lista.map(r => (r.id_resena === resenaActualizada.id_resena ? resenaActualizada : r))
+          );
+          this.editandoVoto.update(state => ({ ...state, [resena.id_resena]: false }));
+        },
+        error: (err: HttpErrorResponse) => {
+          console.error('Error al actualizar voto de la reseña:', err);
+          this.editandoVoto.update(state => ({ ...state, [resena.id_resena]: false }));
+          this.errorResena.set('No se pudo actualizar tu voto. Inténtalo de nuevo.');
+        }
+      });
   }
 }

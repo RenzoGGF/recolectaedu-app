@@ -5,16 +5,16 @@
 
     <div class="header-right">
       <button
-        class="btn-secondary"
         [disabled]="!isAuthenticated()"
+        class="btn-secondary"
       >
         DEJAR RESEÑA
       </button>
 
       <button
-        class="btn-primary"
-        [disabled]="!isAuthenticated() || guardando() || guardado() || !recurso()"
         (click)="guardarEnBiblioteca()"
+        [disabled]="!isAuthenticated() || guardando() || guardado() || !recurso()"
+        class="btn-primary"
       >
         {{ guardado() ? 'GUARDADO' : (guardando() ? 'GUARDANDO...' : 'GUARDAR') }}
       </button>
@@ -40,7 +40,7 @@
             </div>
           } @else if (esEnlace()) {
             <div class="resource-content-link">
-              <a [href]="recurso()!.contenido" target="_blank" rel="noopener">
+              <a [href]="recurso()!.contenido" rel="noopener" target="_blank">
                 {{ recurso()!.contenido }}
               </a>
             </div>
@@ -86,22 +86,110 @@
 
         <div class="sidebar-block sidebar-comments-placeholder">
           <p class="sidebar-label">Comentarios</p>
-          <p class="sidebar-text">
-            Aquí irán los comentarios (solo para usuarios autenticados).
-          </p>
+
+          @if (loadingResenas()) {
+            <p class="sidebar-text">Cargando reseñas...</p>
+          } @else if (resenasError()) {
+            <p class="sidebar-text error-text">{{ resenasError() }}</p>
+          } @else if (resenas().length === 0) {
+            <p class="sidebar-text">Todavía no hay reseñas.</p>
+          } @else {
+            <ul class="reviews-list">
+              @for (resena of resenas(); track resena.id_resena) {
+                <li class="review-item">
+                  <div class="review-header">
+                    <span class="review-author">{{ resena.nombre_autor }}</span>
+
+                    @if (puedeEditarResena(resena)) {
+                      <button
+                        type="button"
+                        class="review-sentiment-button"
+                        [class.positivo]="resena.es_positivo"
+                        [class.negativo]="!resena.es_positivo"
+                        [disabled]="estaEditandoVoto(resena.id_resena)"
+                        (click)="toggleVotoResena(resena)"
+                      >
+                        {{ resena.es_positivo ? 'Marcar como no útil' : 'Marcar como útil' }}
+                      </button>
+                    } @else {
+                      <span
+                        class="review-sentiment"
+                        [class.positivo]="resena.es_positivo"
+                        [class.negativo]="!resena.es_positivo"
+                      >
+                        {{ resena.es_positivo ? 'Útil' : 'No útil' }}
+                      </span>
+                    }
+                  </div>
+                  <p class="review-comment">{{ resena.contenido }}</p>
+                  <span class="review-date">
+                    {{ resena.creado_el | date:'dd/MM/yyyy' }}
+                  </span>
+                </li>
+              }
+            </ul>
+          }
+
+          @if (isAuthenticated()) {
+            <form class="new-review" [formGroup]="resenaForm" (ngSubmit)="enviarResena()">
+              <p class="sidebar-label">Deja tu reseña</p>
+
+              <textarea
+                class="new-review-textarea"
+                formControlName="contenido"
+                rows="3"
+                placeholder="Escribe tu comentario (5 a 255 caracteres)..."
+              ></textarea>
+              @if (contenidoCtrl?.invalid && contenidoCtrl?.touched) {
+                <p class="error-text">
+                  El comentario debe tener entre 5 y 255 caracteres.
+                </p>
+              }
+
+              <div class="new-review-options">
+                <label>
+                  <input
+                    type="radio"
+                    formControlName="es_positivo"
+                    [value]="true"
+                  />
+                  Útil
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    formControlName="es_positivo"
+                    [value]="false"
+                  />
+                  No útil
+                </label>
+              </div>
+              @if (esPositivoCtrl?.invalid && esPositivoCtrl?.touched) {
+                <p class="error-text">
+                  Indica si te pareció útil o no.
+                </p>
+              }
+
+              <button
+                type="submit"
+                class="btn-secondary"
+                [disabled]="resenaForm.invalid || enviandoResena()"
+              >
+                {{ enviandoResena() ? 'Publicando...' : 'Publicar reseña' }}
+              </button>
+
+              @if (errorResena()) {
+                <p class="error-text">
+                  {{ errorResena() }}
+                </p>
+              }
+            </form>
+          } @else {
+            <p class="auth-hint">
+              Inicia sesión para dejar una reseña o guardar este recurso.
+            </p>
+          }
         </div>
-
-        @if (!isAuthenticated()) {
-          <p class="auth-hint">
-            Inicia sesión para guardar este recurso en tu biblioteca o comentar.
-          </p>
-        }
-
-        @if (error()) {
-          <p class="error-text">
-            {{ error() }}
-          </p>
-        }
       </aside>
     </div>
   }
