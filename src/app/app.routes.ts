@@ -16,6 +16,14 @@ export const routes: Routes = [
     component: AuthLayoutComponent,
     loadChildren: () => import('./features/auth/auth.routes').then(m => m.AUTH_ROUTES)
   },
+
+  {
+    path: 'profile',
+    component: SearchLayoutComponent,
+    loadChildren: () =>
+      import('./features/user/user.routes').then(m => m.USER_ROUTES)
+  },
+  
   {
     path: 'search',
     component: SearchLayoutComponent,

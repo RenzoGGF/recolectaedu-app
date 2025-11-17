@@ -267,13 +267,12 @@ export class NavbarUserComponent {
 
   goToProfile(): void {
     this.menuOpen = false;
-    // Ajusta la ruta cuando tengas la página de perfil lista
     this.router.navigate(['/profile']);
   }
 
   logout(): void {
     this.menuOpen = false;
-    this.authService.logout(); // ya navega a /auth/login
+    this.authService.logout(); // navega a /auth/login
   }
 
   onSearch(): void {
