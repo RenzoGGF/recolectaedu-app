@@ -76,7 +76,7 @@ import { SearchResourceParams } from '../../../core/models/resource.model';
 
     <section class="cta-section">
       <div class="container">
-        <a [routerLink]="['/forum']" class="btn btn-forum">¡ENTRA AL FORO!</a>
+        <a [routerLink]="['/foro']" class="btn btn-forum">¡ENTRA AL FORO!</a>
         <h3>¡Comienza a subir recursos para ayudar a la comunidad!</h3>
         <p>Necesitas tener una cuenta para subir recursos</p>
         <a [routerLink]="['/upload']" class="btn btn-primary-blue">
