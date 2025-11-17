@@ -1,3 +1,5 @@
+// src/app/features/recursos/recursos.routes.ts
+
 import { Routes } from '@angular/router';
 import {ResourceDetailComponent} from './pages/resource-detail/resource-detail.component';
 
@@ -13,4 +15,11 @@ export const RECURSOS_ROUTES: Routes = [
     path: ':id',
     component: ResourceDetailComponent
   },
+  {
+    path: 'mis-aportes',
+    loadComponent: () => 
+      import('./pages/historial-aportes/historial-aportes.component')
+        .then(m => m.HistorialAportesComponent),
+    // canActivate: [authGuard] // Descomentar cuando el AuthService esté listo
+  }
 ];

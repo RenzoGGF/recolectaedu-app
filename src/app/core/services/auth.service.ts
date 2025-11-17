@@ -89,6 +89,14 @@ export class AuthService {
     return this._authState()?.name ?? null;
   }
 
+  getUserUniversity(): string | null {
+    const auth = this._authState();
+    // Por ahora el backend no manda universidad; dejamos el método listo
+    // Si en el futuro AuthResponse incluye `university`, solo se mapea aquí.
+    // @ts-ignore
+    return auth && auth.university ? auth.university : null;
+  }
+
   logout(): void {
     this._authState.set(null);
     localStorage.removeItem('recolectaedu_auth');

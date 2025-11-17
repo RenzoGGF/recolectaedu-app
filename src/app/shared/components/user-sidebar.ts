@@ -37,7 +37,7 @@ import { faUser, faPlus } from '@fortawesome/free-solid-svg-icons';
       <nav class="nav-section">
         <a [routerLink]="['/']" class="nav-link">Página principal</a>
         <a [routerLink]="['/biblioteca']" class="nav-link">Biblioteca personal</a>
-        <a [routerLink]="['/mis-aportes']" class="nav-link">Mis Aportes</a>
+        <a [routerLink]="['/recursos/mis-aportes']" class="nav-link">Mis Aportes</a>
       </nav>
 
       <div class="action-section">
