@@ -1,7 +1,7 @@
-import { Routes } from '@angular/router';
-import { LandingLayoutComponent } from './shared/layouts/landing-layout';
-import { AuthLayoutComponent } from './shared/layouts/auth.layout';
-import { SearchLayoutComponent } from './shared/layouts/search.layout';
+import {Routes} from '@angular/router';
+import {LandingLayoutComponent} from './shared/layouts/landing-layout';
+import {AuthLayoutComponent} from './shared/layouts/auth.layout';
+import {SearchLayoutComponent} from './shared/layouts/search.layout';
 import {authGuard} from './core/guards/auth.guard';
 
 export const routes: Routes = [

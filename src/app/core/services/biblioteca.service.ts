@@ -17,7 +17,7 @@ export class BibliotecaService {
 
   listarRecursos(idBiblioteca: number): Observable<BibliotecaRecursoResponse[]> {
     return this.http.get<BibliotecaRecursoResponse[]>(
-      `${this.apiUrl}/biblioteca/${idBiblioteca}/recursos`
+      `${this.apiUrl}/bibliotecas/${idBiblioteca}/recursos`
     );
   }
 }
