@@ -13,6 +13,8 @@ import {DatePipe} from '@angular/common';
 })
 export class ListaRecursosComponent implements OnInit {
   private bibliotecaService = inject(BibliotecaService);
+  // Para después (vista del recurso)
+  // private router = inject(Router);
 
   recursos = signal<BibliotecaRecursoResponse[]>([]);
   loading = signal(false);
@@ -46,5 +48,11 @@ export class ListaRecursosComponent implements OnInit {
         console.error(err);
       }
     });
+  }
+
+  verRecurso(recurso: BibliotecaRecursoResponse): void {
+    // TODO: implementar la vista del recurso
+    // this.router.navigate(['/recursos', recurso.id_biblioteca_recurso]);
+    console.log('Ver recurso (por implementar):', recurso);
   }
 }

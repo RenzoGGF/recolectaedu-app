@@ -1,32 +1,28 @@
-<div class="container">
-  <h2>Recursos de mi Biblioteca</h2>
-
+<div class="results-list">
+  <h2>¡Bienvenido a la biblioteca de tu usuario!</h2>
   @if (loading()) {
     <p>Cargando recursos...</p>
-  }
+  } @else if (error()) {
+    <p class="error-text">{{ error() }}</p>
+  } @else {
+    @for (recurso of recursos(); track recurso.id_biblioteca_recurso) {
+      <article class="resource-card" (click)="verRecurso(recurso)">
+        <div class="resource-image">
+          <span>[IMG]</span>
+        </div>
 
-  @if (error()) {
-    <div class="error">
-      <p>{{ error() }}</p>
-    </div>
-  }
+        <div class="resource-content">
+          <h3 class="resource-title">
+            {{ recurso.titulo_recurso }}
+          </h3>
 
-  @if (!loading() && !error()) {
-    @if (recursos().length === 0) {
-      <p>No hay recursos en tu biblioteca</p>
-    } @else {
-      <ul>
-        @for (recurso of recursos(); track recurso.id_biblioteca_recurso) {
-          <li>
-            <strong>{{ recurso.titulo_recurso }}</strong>
-            <br>
-            <small>
-              ID: {{ recurso.id_biblioteca_recurso }} -
-              Agregado: {{ recurso.agregado_el | date:'short' }}
-            </small>
-          </li>
-        }
-      </ul>
+          <span class="added-date">
+            Agregado el {{ recurso.agregado_el | date:'dd/MM/yyyy' }}
+          </span>
+        </div>
+      </article>
+    } @empty {
+      <p>No tienes recursos guardados todavía.</p>
     }
   }
 </div>
