@@ -465,4 +465,7 @@
       </form>
     </div>
   }
+  @if (showSuccessModal()) {
+  <app-success-modal (close)="closeSuccessModal()"></app-success-modal>
+}
 </div>

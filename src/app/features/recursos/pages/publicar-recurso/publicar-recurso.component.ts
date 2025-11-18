@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ResourceService } from '../../../../core/services/resource.service';
+import { SuccessModalComponent } from '../../components/success-modal/success-modal.component';
 import { 
   RecursoCreateRequest, 
   RecursoArchivoCreateRequest,
@@ -20,7 +21,7 @@ type TipoRecurso = 'ARCHIVO' | 'ENLACE' | 'TEXTO';
 @Component({
   selector: 'app-publicar-recurso',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, SuccessModalComponent],
   templateUrl: './publicar-recurso.component.html',
   styleUrl: './publicar-recurso.component.css'
 })
@@ -36,6 +37,7 @@ export class PublicarRecursoComponent {
   loading = signal(false);
   errorMessage = signal<string | null>(null);
   successMessage = signal<string | null>(null);
+  showSuccessModal = signal(false);
 
   // Opciones para dropdowns
   periodosAcademicos = PERIODOS_ACADEMICOS;
@@ -222,46 +224,50 @@ export class PublicarRecursoComponent {
     }
     }
 
-    private submitFileResource(baseData: any): void {
+  private submitFileResource(baseData: any): void {
     const file = this.selectedFile();
     if (!file) {
-        this.errorMessage.set('Debe seleccionar un archivo.');
-        this.loading.set(false);
-        return;
+      this.errorMessage.set('Debe seleccionar un archivo.');
+      this.loading.set(false);
+      return;
     }
     
     const metadata: RecursoArchivoCreateRequest = {
-        ...baseData,
-        formato: FORMATOS_RECURSO.ARCHIVO
+      ...baseData,
+      formato: FORMATOS_RECURSO.ARCHIVO
     };
     
+    console.log('📤 Enviando datos:', metadata);
     console.log('📤 Request ARCHIVO:');
-    console.log('  - Archivo:', file.name, file.size, 'bytes');
-    console.log('  - Metadata:', metadata);
+    console.log(`  - Archivo: ${file.name} ${file.size} bytes`);
+    console.log(`  - Metadata:`, metadata);
     
     this.resourceService.createResourceFile(file, metadata).subscribe({
-        next: (response) => {
+      next: (response) => {
         console.log('✅ Respuesta exitosa:', response);
-        this.successMessage.set('¡Recurso publicado exitosamente!');
+        
+        // ⭐ MOSTRAR MODAL EN LUGAR DE successMessage
+        this.showSuccessModal.set(true);
         this.loading.set(false);
         
+        // Resetear formulario después de 3 segundos
         setTimeout(() => {
-            this.router.navigate(['/search']);
-        }, 2000);
-        },
-        error: (error) => {
+          this.resetForm();
+        }, 3000);
+      },
+      error: (error) => {
         console.error('❌ Error completo:', error);
         console.error('Status:', error.status);
         console.error('Message:', error.message);
         console.error('Error body:', error.error);
         
         this.errorMessage.set(
-            error.error?.message || 'Error al publicar el recurso. Intenta nuevamente.'
+          error.error?.message || 'Error al publicar el recurso. Intenta nuevamente.'
         );
         this.loading.set(false);
-        }
+      }
     });
-    }
+  }
 
 private submitJsonResource(baseData: any, tipo: TipoRecurso): void {
   const formValue = this.recursoForm.value;
@@ -277,12 +283,14 @@ private submitJsonResource(baseData: any, tipo: TipoRecurso): void {
   this.resourceService.createResourceJson(requestData).subscribe({
     next: (response) => {
       console.log('✅ Respuesta exitosa:', response);
-      this.successMessage.set('¡Recurso publicado exitosamente!');
+      
+      this.showSuccessModal.set(true);
+      
       this.loading.set(false);
       
       setTimeout(() => {
-        this.router.navigate(['/search']); // Cambiar a /search por ahora
-      }, 2000);
+        this.resetForm();
+      }, 3000);
     },
     error: (error) => {
       console.error('❌ Error completo:', error);
@@ -298,6 +306,22 @@ private submitJsonResource(baseData: any, tipo: TipoRecurso): void {
   });
 }
 
+  closeSuccessModal(): void {
+    this.showSuccessModal.set(false);
+    this.router.navigate(['/search']);
+  }
+
+      private resetForm(): void {
+      this.recursoForm.reset({
+        formato: 'TEXTO',
+        tipo: '',
+        ano: new Date().getFullYear(),
+        periodo: 1
+      });
+      this.selectedFile.set(null);
+      this.successMessage.set(null);
+      this.errorMessage.set(null);
+    }
   // ==================== Navegación entre pasos ====================
 
   goToStep(step: 1 | 2 | 3): void {
@@ -350,6 +374,66 @@ private submitJsonResource(baseData: any, tipo: TipoRecurso): void {
     
     return 'Campo inválido';
   }
+
+  getFieldError(fieldName: string): string | null {
+  const control = this.recursoForm.get(fieldName);
+  
+  if (!control || !control.errors || !control.touched) {
+    return null;
+  }
+
+  const errors = control.errors;
+
+  // Mensajes específicos por campo y tipo de error
+  const errorMessages: Record<string, Record<string, string>> = {
+    universidad: {
+      required: 'Debes seleccionar una universidad'
+    },
+    carrera: {
+      required: 'Debes seleccionar una carrera'
+    },
+    nombreCurso: {
+      required: 'Debes ingresar el nombre del curso',
+      minlength: 'El nombre del curso debe tener al menos 3 caracteres'
+    },
+    titulo: {
+      required: 'Debes ingresar un título para el recurso',
+      minlength: 'El título debe tener al menos 5 caracteres',
+      maxlength: 'El título no puede exceder 255 caracteres'
+    },
+    descripcion: {
+      required: 'Debes ingresar una descripción',
+      minlength: 'La descripción debe tener al menos 10 caracteres'
+    },
+    tipo: {
+      required: 'Debes seleccionar el tipo de recurso'
+    },
+    contenido: {
+      required: 'Debes ingresar el contenido del recurso',
+      minlength: 'El contenido debe tener al menos 10 caracteres'
+    },
+    ano: {
+      required: 'Debes ingresar el año',
+      min: 'El año debe ser mayor a 1900',
+      max: 'El año no puede ser mayor a 2100'
+    },
+    periodo: {
+      required: 'Debes seleccionar el periodo académico'
+    }
+  };
+
+  const fieldErrors = errorMessages[fieldName];
+  if (!fieldErrors) return 'Campo inválido';
+
+  // Retornar el primer error encontrado
+  for (const errorType in errors) {
+    if (fieldErrors[errorType]) {
+      return fieldErrors[errorType];
+    }
+  }
+
+  return 'Campo inválido';
+}
 
   private markFormGroupTouched(formGroup: FormGroup): void {
     Object.keys(formGroup.controls).forEach(key => {
