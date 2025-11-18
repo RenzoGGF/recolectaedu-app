@@ -1,10 +1,10 @@
 // src/app/features/recursos/pages/historial-aportes/historial-aportes.component.ts
-// REEMPLAZAR las líneas relevantes:
+// REEMPLAZAR TODO EL CONTENIDO DEL ARCHIVO CON ESTO:
 
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router'; 
 import { UsuarioService } from '../../../../core/services/usuario.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { 
@@ -12,36 +12,38 @@ import {
   RespuestaPagina,
   TIPOS_RECURSO_FILTRO,
   ORDENAMIENTO_OPCIONES,
-  getTipoIniciales,
-  ORDENAMIENTO_OPCIONES,
-  RespuestaPagina,
-  TIPOS_RECURSO_FILTRO
+  getTipoIniciales
 } from '../../../../core/models/aporte.model';
-import {HttpErrorResponse} from '@angular/common/http';
+import { HttpErrorResponse } from '@angular/common/http';
+import { UsuarioStats } from '../../../../core/models/usuario-stats.model';
 
 @Component({
   selector: 'app-historial-aportes',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink], 
   templateUrl: './historial-aportes.component.html',
   styleUrl: './historial-aportes.component.css'
 })
 export class HistorialAportesComponent implements OnInit {
+  // ⭐ Services - DECLARAR SOLO UNA VEZ
   private readonly usuarioService = inject(UsuarioService);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
-  // Signals para estado
+  // ⭐ Signals para estado
   aportes = signal<Aporte[]>([]);
   loading = signal(false);
   errorMessage = signal<string | null>(null);
+  userStats = signal<UsuarioStats | null>(null); 
+  
   // Paginación
   currentPage = signal(0);
   pageSize = signal(10);
   totalElements = signal(0);
   totalPages = signal(0);
   isLastPage = signal(false);
+  
   // Filtros
   tipoFiltro = signal<string>('');
   ordenamiento = signal<string>('creado_el,desc');
@@ -51,21 +53,18 @@ export class HistorialAportesComponent implements OnInit {
   opcionesOrdenamiento = ORDENAMIENTO_OPCIONES;
   
   // Usuario actual
-  currentUserId = this.authService.getUserId() || 1; // Fallback a 1
+  currentUserId = this.authService.getUserId() || 1;
   
   // Computed
   hasAportes = computed(() => this.aportes().length > 0);
   isEmpty = computed(() => !this.loading() && this.aportes().length === 0);
-  // Helpers para template
+  
+  // ⭐ Helpers para template
   getTipoIniciales = getTipoIniciales;
-  getFormatoLabel = getFormatoLabel;
-  private readonly usuarioService = inject(UsuarioService);
-  private readonly router = inject(Router);
-  private readonly route = inject(ActivatedRoute);
 
   ngOnInit(): void {
     this.loadAportes();
-    // ⭐ NO cargar stats aquí - el sidebar lo hace
+    this.loadUserStats(); // 
   }
 
   loadAportes(): void {
@@ -106,6 +105,17 @@ export class HistorialAportesComponent implements OnInit {
     });
   }
 
+  private loadUserStats(): void {
+    this.usuarioService.getUserStats(this.currentUserId).subscribe({
+      next: (stats) => {
+        this.userStats.set(stats);
+      },
+      error: (error: HttpErrorResponse) => {
+        console.error('Error al cargar estadísticas:', error);
+      }
+    });
+  }
+
   onTipoChange(): void {
     this.currentPage.set(0);
     this.loadAportes();
@@ -120,7 +130,7 @@ export class HistorialAportesComponent implements OnInit {
     if (page >= 0 && page < this.totalPages()) {
       this.currentPage.set(page);
       this.loadAportes();
-      window.scrollTo({top: 0, behavior: 'smooth'});
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
 
@@ -150,6 +160,16 @@ export class HistorialAportesComponent implements OnInit {
     return `${year}/${year + 1}`;
   }
 
+  // ⭐ AGREGAR ESTA FUNCIÓN si la usas en el HTML
+  getFormatoLabel(formato: string): string {
+    const labels: Record<string, string> = {
+      'ARCHIVO': 'Archivo',
+      'ENLACE': 'Enlace',
+      'TEXTO': 'Texto'
+    };
+    return labels[formato] || formato;
+  }
+
   editarRecurso(id: number): void {
     console.log('Editar recurso:', id);
     this.router.navigate(['/recursos/editar', id]);
@@ -157,20 +177,10 @@ export class HistorialAportesComponent implements OnInit {
 
   eliminarRecurso(id: number): void {
     console.log('Eliminar recurso:', id);
+    // TODO: Implementar lógica de eliminación
   }
 
   irASubirRecurso(): void {
     this.router.navigate(['/recursos/publicar']);
-  }
-
-  private loadUserStats(): void {
-    this.usuarioService.getUserStats(this.currentUserId).subscribe({
-      next: (stats) => {
-        this.userStats.set(stats);
-      },
-      error: (error: HttpErrorResponse) => {
-        console.error('Error al cargar estadísticas:', error);
-      }
-    });
   }
 }
