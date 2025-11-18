@@ -1,13 +1,14 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faGraduationCap, faSearch } from '@fortawesome/free-solid-svg-icons';
-
+import { UniversityRanking } from '../../../core/models/university.model.js';
+import { CourseService } from '../../../core/services/course.service.js';
 import { AdvancedSearchComponent } from '../../search/components/advanced-search.component.ts';
 import { SearchResourceParams } from '../../../core/models/resource.model';
-
+import { catchError, of, tap } from 'rxjs';
 @Component({
   selector: 'app-home',
   standalone: true,
@@ -67,9 +68,15 @@ import { SearchResourceParams } from '../../../core/models/resource.model';
       <div class="content-card">
         <h2 class="universities-title">Universidades</h2>
         <div class="pills-container">
-          @for (uni of universities; track uni) {
-            <a href="#" class="pill">{{ uni }}</a>
+
+          @for (uni of universities(); track uni.universidad) {
+            <a [routerLink]="['/instituciones', uni.universidad]" class="pill">
+              {{ uni.universidad }}
+            </a>
+          } @empty {
+            <p>{{ universityLoadingMessage() }}</p>
           }
+
         </div>
       </div>
     </section>
@@ -453,19 +460,20 @@ import { SearchResourceParams } from '../../../core/models/resource.model';
     }
   `]
 })
-export class HomeComponent {
+export class HomeComponent implements OnInit { // <-- CAMBIO 3: Implementamos OnInit
   iconCurso = faGraduationCap;
   iconSearch = faSearch;
 
-  universities: string[] = [ /* (lista de universidades) */ ];
-
   private fb = inject(FormBuilder);
   private router = inject(Router);
+  private courseService = inject(CourseService);
 
   searchForm: FormGroup;
-
   isAdvancedSearchOpen = signal(false);
   private advancedFilters = signal<Partial<SearchResourceParams>>({});
+
+  universities = signal<UniversityRanking[]>([]);
+  universityLoadingMessage = signal('Cargando universidades...');
 
   constructor() {
     this.searchForm = this.fb.group({
@@ -474,31 +482,44 @@ export class HomeComponent {
       cursoId: ['']
     });
   }
+  ngOnInit(): void {
+    this.loadUniversityRanking();
+  }
+
+  loadUniversityRanking(): void {
+    this.courseService.getRankingUniversidades().pipe(
+      tap((data) => {
+        this.universities.set(data);
+        if (data.length === 0) {
+          this.universityLoadingMessage.set('No hay universidades para mostrar.');
+        }
+      }),
+      catchError((err) => {
+        console.error('Error al cargar ranking de universidades:', err);
+        this.universityLoadingMessage.set('No se pudo cargar el ranking.');
+        return of([]);
+      })
+    ).subscribe();
+  }
 
   onOpenAdvancedSearch(): void {
     this.isAdvancedSearchOpen.set(true);
   }
-
   onCloseAdvancedSearch(): void {
     this.isAdvancedSearchOpen.set(false);
   }
-
   onApplyFilters(filters: any): void {
     this.advancedFilters.set(filters);
     this.onCloseAdvancedSearch();
     this.navigateToSearch();
   }
-
   onSimpleSearch(): void {
     this.navigateToSearch();
   }
-
   private navigateToSearch(): void {
     const simpleParams = this.searchForm.value;
     const advancedParams = this.advancedFilters();
-
     const allParams: SearchResourceParams = { ...simpleParams, ...advancedParams };
-
     const queryParams: any = {};
     for (const key in allParams) {
       const value = (allParams as any)[key];
@@ -506,9 +527,7 @@ export class HomeComponent {
         queryParams[key] = value;
       }
     }
-
     console.log('Navegando a /search con los filtros:', queryParams);
-
     this.router.navigate(['/search'], { queryParams: queryParams });
   }
 }

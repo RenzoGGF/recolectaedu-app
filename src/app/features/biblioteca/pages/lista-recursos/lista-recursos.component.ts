@@ -2,6 +2,8 @@ import {Component, inject, OnInit, signal} from '@angular/core';
 import {BibliotecaService} from "../../../../core/services/biblioteca.service";
 import {BibliotecaRecursoResponse} from '../../../../core/models/biblioteca.model';
 import {DatePipe} from '@angular/common';
+import {Router} from '@angular/router';
+import {HttpErrorResponse} from '@angular/common/http';
 
 @Component({
   selector: 'app-lista-recursos',
@@ -13,8 +15,7 @@ import {DatePipe} from '@angular/common';
 })
 export class ListaRecursosComponent implements OnInit {
   private bibliotecaService = inject(BibliotecaService);
-  // Para después (vista del recurso)
-  // private router = inject(Router);
+  private router = inject(Router);
 
   recursos = signal<BibliotecaRecursoResponse[]>([]);
   loading = signal(false);
@@ -35,14 +36,14 @@ export class ListaRecursosComponent implements OnInit {
             this.recursos.set(recursos);
             this.loading.set(false);
           },
-          error: (err) => {
+          error: (err: HttpErrorResponse) => {
             this.error.set('Error al cargar los recursos');
             this.loading.set(false);
             console.error(err);
           }
         });
       },
-      error: (err) => {
+      error: (err: HttpErrorResponse) => {
         this.error.set('Error al obtener la biblioteca');
         this.loading.set(false);
         console.error(err);
@@ -51,8 +52,6 @@ export class ListaRecursosComponent implements OnInit {
   }
 
   verRecurso(recurso: BibliotecaRecursoResponse): void {
-    // TODO: implementar la vista del recurso
-    // this.router.navigate(['/recursos', recurso.id_biblioteca_recurso]);
-    console.log('Ver recurso (por implementar):', recurso);
+    this.router.navigate(['/recursos', recurso.id_recurso]);
   }
 }

@@ -1,7 +1,7 @@
 <!-- src/app/features/recursos/pages/historial-aportes/historial-aportes.component.html -->
 
 <div class="historial-container">
-  
+
   <!-- Header con título -->
   <div class="page-header">
     <h1>Tus aportes</h1>
@@ -11,7 +11,7 @@
   <div class="filters-bar">
     <div class="filter-group">
       <label for="tipoFiltro" class="filter-label">Filtrado por:</label>
-      <select 
+      <select
         id="tipoFiltro"
         [(ngModel)]="tipoFiltro"
         (change)="onTipoChange()"
@@ -24,7 +24,7 @@
 
     <div class="filter-group">
       <label for="ordenamiento" class="filter-label">Ordenando por:</label>
-      <select 
+      <select
         id="ordenamiento"
         [(ngModel)]="ordenamiento"
         (change)="onOrdenamientoChange()"
@@ -70,7 +70,7 @@
   <!-- Lista de Aportes -->
   @if (hasAportes() && !loading()) {
     <div class="aportes-list">
-      
+
       <!-- Info de resultados -->
       <div class="results-info">
         <p>
@@ -81,7 +81,7 @@
       <!-- Cards de recursos -->
       @for (aporte of aportes(); track aporte.id) {
         <div class="aporte-card">
-          
+
           <!-- Badge con iniciales del tipo -->
           <div class="aporte-badge">
             <span class="badge-text">{{ getTipoIniciales(aporte.tipo) }}</span>
@@ -89,10 +89,10 @@
 
           <!-- Contenido del recurso -->
           <div class="aporte-content">
-            
+
             <!-- Título -->
-            <h3 class="aporte-titulo">{{ aporte.titulo }}</h3>
-            
+            <h3 class="aporte-titulo" [routerLink]="['/recursos', aporte.id]" >{{ aporte.titulo }}</h3>
+
             <!-- Información del curso -->
             <div class="aporte-info">
               <span class="info-item curso">{{ aporte.cursoNombre }}</span>
@@ -126,14 +126,14 @@
 
           <!-- Acciones (Editar/Eliminar - Deshabilitados por ahora) -->
           <div class="aporte-actions">
-            <button 
+            <button
               class="btn-action btn-edit"
               (click)="editarRecurso(aporte.id)"
               disabled
               title="Funcionalidad en desarrollo">
               Editar
             </button>
-            <button 
+            <button
               class="btn-action btn-delete"
               (click)="eliminarRecurso(aporte.id)"
               disabled
@@ -148,7 +148,7 @@
     <!-- Paginación -->
     @if (totalPages() > 1) {
       <div class="pagination">
-        <button 
+        <button
           class="btn-page"
           (click)="previousPage()"
           [disabled]="currentPage() === 0">
@@ -157,7 +157,7 @@
 
         <div class="page-numbers">
           @for (pageNum of [].constructor(totalPages()); track $index) {
-            <button 
+            <button
               class="btn-page-number"
               [class.active]="currentPage() === $index"
               (click)="goToPage($index)">
@@ -166,7 +166,7 @@
           }
         </div>
 
-        <button 
+        <button
           class="btn-page"
           (click)="nextPage()"
           [disabled]="isLastPage()">
