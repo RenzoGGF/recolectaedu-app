@@ -244,15 +244,17 @@ export class PublicarRecursoComponent implements OnInit {
     // Si no lo es
     else {
       const formValue = this.recursoForm.value;
+      let contenidoToSend = formValue.contenido;
+      if (tipo === 'ARCHIVO') {
+        contenidoToSend = this.nombreArchivoActual() || '';
+      }
+
       const requestData: RecursoCreateRequest = {
         ...baseData,
-        // Si es archivo y no hay nuevo, mandamos '' (backend ignora contenido).
-        // Si es texto/enlace, mandamos lo del form.
-        contenido: (tipo === 'ARCHIVO') ? '' : formValue.contenido,
+        contenido: contenidoToSend,
         formato: (tipo === 'ENLACE') ? FORMATOS_RECURSO.ENLACE : (tipo === 'ARCHIVO' ? FORMATOS_RECURSO.ARCHIVO : FORMATOS_RECURSO.TEXTO)
       };
-
-      this.resourceService.updateResource(id, requestData)
+      this.resourceService.updateResourceJson(id, requestData)
         .subscribe(this.getUpdateObserver());
     }
   }

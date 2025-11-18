@@ -94,8 +94,7 @@ export class ResourceService {
     });
     formData.append('metadata', metadataBlob);
 
-    // Nota el /archivo al final para coincidir con el Controller sugerido
-    return this.http.put<Resource>(`${this.resourcesUrl}/${id}/archivo`, formData);
+    return this.http.put<Resource>(`${this.resourcesUrl}/${id}`, formData);
   }
 
   /**
@@ -130,7 +129,7 @@ export class ResourceService {
    * Actualizar recurso
    * PUT /api/v1/recursos/{id}
    */
-  updateResource(id: number, data: RecursoCreateRequest): Observable<Resource> {
+  updateResourceJson(id: number, data: RecursoCreateRequest): Observable<Resource> {
     return this.http.put<Resource>(`${this.resourcesUrl}/${id}`, data);
   }
 
