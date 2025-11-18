@@ -645,3 +645,57 @@ select.form-control {
     text-align: center;
   }
 }
+
+.current-file-card {
+  background-color: #e7f5ff;
+  border: 1px solid #b3e5fc;
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.current-file-card .file-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  /* Sobrescribe el borde verde que tiene .file-info por defecto */
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.current-file-card .label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #0D8EFF;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.current-file-card .file-name {
+  color: #0056b3;
+}
+
+.current-file-card .hint {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-left: auto; /* Empuja el hint a la derecha */
+  font-style: italic;
+}
+
+@media (max-width: 600px) {
+  .current-file-card .file-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .current-file-card .hint {
+    margin-left: 0;
+  }
+}

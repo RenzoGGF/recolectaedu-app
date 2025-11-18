@@ -1,13 +1,15 @@
 <!-- src/app/features/recursos/pages/publicar-recurso/publicar-recurso.component.html -->
 
 <div class="publicar-recurso-container">
-  
+
   <!-- Header -->
   <div class="page-header">
     <button class="btn-back" (click)="goBack()">
       ← Volver
     </button>
-    <h1>¡Comparte un recurso para ayudar a otros estudiantes!</h1>
+    <h1 class="page-title">
+      {{ esEdicion() ? 'Editar Recurso' : '¡Comparte un recurso para ayudar a otros estudiantes!' }}
+    </h1>
   </div>
 
   <!-- Indicador de pasos -->
@@ -48,10 +50,10 @@
   @if (currentStep() === 1) {
     <div class="step-content step-1">
       <div class="tipo-selector">
-        
+
         <p class="instruction-text">¡Puedes elegir subir un archivo!</p>
-        
-        <button 
+
+        <button
           class="tipo-option"
           (click)="selectTipo('ARCHIVO')"
           type="button">
@@ -63,8 +65,8 @@
         <p class="separator">o de lo contrario...</p>
 
         <p class="instruction-text">¡Puedes elegir subir un enlace!</p>
-        
-        <button 
+
+        <button
           class="tipo-option"
           (click)="selectTipo('ENLACE')"
           type="button">
@@ -76,8 +78,8 @@
         <p class="separator">como última opción...</p>
 
         <p class="instruction-text">¡Sube un texto!</p>
-        
-        <button 
+
+        <button
           class="tipo-option"
           (click)="selectTipo('TEXTO')"
           type="button">
@@ -92,32 +94,46 @@
 <!-- PASO 2: Subir Contenido -->
 @if (currentStep() === 2) {
   <div class="step-content step-2">
-    
+
     <!-- Opción ARCHIVO -->
     @if (isArchivoType) {
       <div class="upload-section">
         <h2>¡Comparte un archivo para ayudar a otros estudiantes!</h2>
-        
+
+        <!-- Mostrar archivo actual si se está editando -->
+        @if (esEdicion() && nombreArchivoActual() && !selectedFile()) {
+          <div class="current-file-card">
+            <div class="file-info">
+              <div class="file-icon">📄</div>
+              <div class="file-details">
+                <span class="label">Archivo actual en el servidor:</span>
+                <div class="file-name">{{ nombreArchivoActual() }}</div>
+                <span class="hint">Sube uno nuevo abajo SOLO si deseas reemplazarlo.</span>
+              </div>
+            </div>
+          </div>
+        }
+
         @if (!selectedFile()) {
-          <div 
+          <div
             class="file-upload-area"
             (drop)="onFileDrop($event)"
             (dragover)="onDragOver($event)">
-            
+
             <div class="upload-icon">📁</div>
             <p class="upload-title">Arrastra y suelta un archivo</p>
             <p class="upload-subtitle">O si prefieres...</p>
-            
+
             <label for="fileInput" class="btn-upload">
               Buscar en mis archivos
             </label>
-            <input 
-              type="file" 
+            <input
+              type="file"
               id="fileInput"
               accept=".pdf,.doc,.docx"
               (change)="onFileSelected($event)"
               style="display: none;">
-            
+
             <p class="upload-info">¡Aceptamos pdf, doc o docx!</p>
           </div>
         } @else {
@@ -128,19 +144,19 @@
                 <div class="file-name">{{ selectedFile()!.name }}</div>
                 <div class="file-size">{{ getFileSize(selectedFile()!.size) }}</div>
               </div>
-              <button 
+              <button
                 class="btn-remove-file"
                 (click)="removeFile()"
                 type="button">
                 🗑️
               </button>
             </div>
-            
+
             <div class="file-disclaimer">
               <p>¡Ten en cuenta lo siguiente!</p>
               <p class="disclaimer-text">
-                Al subir un archivo en RecolectaEdu, declaras que eres propietario de los 
-                derechos de autor del archivo o que tienes permiso del titular de los 
+                Al subir un archivo en RecolectaEdu, declaras que eres propietario de los
+                derechos de autor del archivo o que tienes permiso del titular de los
                 derechos de autor para usarlos y subirlos
               </p>
             </div>
@@ -148,13 +164,13 @@
         }
 
         <div class="step-actions">
-          <button 
+          <button
             class="btn btn-secondary"
             (click)="goBack()"
             type="button">
             ← Atrás
           </button>
-          <button 
+          <button
             class="btn btn-primary"
             (click)="goToStep(3)"
             [disabled]="!canProceedToStep3()"
@@ -170,7 +186,7 @@
       <form [formGroup]="recursoForm">
         <div class="content-section">
           <h2>¡Comparte un enlace para ayudar a otros estudiantes!</h2>
-          
+
           <div class="form-group">
             <label for="contenidoEnlace" class="form-label">
               URL del Enlace <span class="required">*</span>
@@ -182,20 +198,20 @@
               class="form-control"
               [class.is-invalid]="hasError('contenido')"
               placeholder="https://ejemplo.com/recurso">
-            
+
             @if (hasError('contenido')) {
               <span class="error-message">{{ getErrorMessage('contenido') }}</span>
             }
           </div>
 
           <div class="step-actions">
-            <button 
+            <button
               class="btn btn-secondary"
               (click)="goBack()"
               type="button">
               ← Atrás
             </button>
-            <button 
+            <button
               class="btn btn-primary"
               (click)="goToStep(3)"
               type="button">
@@ -211,7 +227,7 @@
       <form [formGroup]="recursoForm">
         <div class="content-section">
           <h2>¡Comparte un texto para ayudar a otros estudiantes!</h2>
-          
+
           <div class="form-group">
             <label for="contenidoTexto" class="form-label">
               Contenido del Texto <span class="required">*</span>
@@ -224,24 +240,24 @@
               rows="10"
               placeholder="Escribe aquí el contenido del recurso...">
             </textarea>
-            
+
             @if (hasError('contenido')) {
               <span class="error-message">{{ getErrorMessage('contenido') }}</span>
             }
-            
+
             <span class="char-counter">
               {{ recursoForm.get('contenido')?.value?.length || 0 }} caracteres
             </span>
           </div>
 
           <div class="step-actions">
-            <button 
+            <button
               class="btn btn-secondary"
               (click)="goBack()"
               type="button">
               ← Atrás
             </button>
-            <button 
+            <button
               class="btn btn-primary"
               (click)="goToStep(3)"
               type="button">
@@ -257,9 +273,9 @@
   <!-- PASO 3: Formulario de Metadatos -->
   @if (currentStep() === 3) {
     <div class="step-content step-3">
-      
+
       <form [formGroup]="recursoForm" (ngSubmit)="onSubmit()">
-        
+
         <!-- Mostrar archivo seleccionado si es tipo ARCHIVO -->
         @if (isArchivoType && selectedFile()) {
           <div class="file-badge">
@@ -272,7 +288,7 @@
         <!-- Clasificación Académica -->
         <div class="form-section">
           <h3 class="form-section-title">Clasificación Académica</h3>
-          
+
           <div class="form-group">
             <label for="universidad" class="form-label">
               Institución Educativa <span class="required">*</span>
@@ -284,7 +300,7 @@
               class="form-control"
               [class.is-invalid]="hasError('universidad')"
               placeholder="Buscar por nombre de institución educativa">
-            
+
             @if (hasError('universidad')) {
               <span class="error-message">{{ getErrorMessage('universidad') }}</span>
             }
@@ -301,7 +317,7 @@
               class="form-control"
               [class.is-invalid]="hasError('carrera')"
               placeholder="Ej: Ingeniería de Software, Medicina, etc.">
-            
+
             @if (hasError('carrera')) {
               <span class="error-message">{{ getErrorMessage('carrera') }}</span>
             }
@@ -318,7 +334,7 @@
               class="form-control"
               [class.is-invalid]="hasError('nombreCurso')"
               placeholder="Buscar por nombre de asignatura o código">
-            
+
             @if (hasError('nombreCurso')) {
               <span class="error-message">{{ getErrorMessage('nombreCurso') }}</span>
             }
@@ -328,7 +344,7 @@
         <!-- Información del Recurso -->
         <div class="form-section">
           <h3 class="form-section-title">Información del Recurso</h3>
-          
+
           <div class="form-group">
             <label for="titulo" class="form-label">
               Título <span class="required">*</span>
@@ -341,11 +357,11 @@
               [class.is-invalid]="hasError('titulo')"
               placeholder="Ej: Guía de Algoritmos de Ordenamiento"
               maxlength="255">
-            
+
             @if (hasError('titulo')) {
               <span class="error-message">{{ getErrorMessage('titulo') }}</span>
             }
-            
+
             <span class="char-counter">
               {{ recursoForm.get('titulo')?.value?.length || 0 }} / 255
             </span>
@@ -365,7 +381,7 @@
                 <option [value]="tipo.value">{{ tipo.label }}</option>
               }
             </select>
-            
+
             @if (hasError('tipo')) {
               <span class="error-message">{{ getErrorMessage('tipo') }}</span>
             }
@@ -386,7 +402,7 @@
                   <option [value]="ano">{{ ano }}</option>
                 }
               </select>
-              
+
               @if (hasError('ano')) {
                 <span class="error-message">{{ getErrorMessage('ano') }}</span>
               }
@@ -406,7 +422,7 @@
                   <option [value]="periodo.value">{{ periodo.label }}</option>
                 }
               </select>
-              
+
               @if (hasError('periodo')) {
                 <span class="error-message">{{ getErrorMessage('periodo') }}</span>
               }
@@ -425,7 +441,7 @@
               rows="5"
               placeholder="Por favor, brindanos la mayor información adicional posible.">
             </textarea>
-            
+
             @if (hasError('descripcion')) {
               <span class="error-message">{{ getErrorMessage('descripcion') }}</span>
             }
@@ -434,23 +450,23 @@
 
         <!-- Acciones finales -->
         <div class="form-actions">
-          <button 
+          <button
             type="button"
             class="btn btn-secondary"
             (click)="goBack()"
             [disabled]="loading()">
             ← Atrás
           </button>
-          
-          <button 
+
+          <button
             type="button"
             class="btn btn-tertiary"
             (click)="cancel()"
             [disabled]="loading()">
             Cancelar
           </button>
-          
-          <button 
+
+          <button
             type="submit"
             class="btn btn-primary"
             [disabled]="loading()">

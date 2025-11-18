@@ -85,6 +85,19 @@ export class ResourceService {
     return this.http.post<Resource>(this.resourcesUrl, formData);
   }
 
+  updateResourceFile(id: number, archivo: File, metadata: RecursoArchivoCreateRequest): Observable<Resource> {
+    const formData = new FormData();
+    formData.append('archivo', archivo);
+
+    const metadataBlob = new Blob([JSON.stringify(metadata)], {
+      type: 'application/json'
+    });
+    formData.append('metadata', metadataBlob);
+
+    // Nota el /archivo al final para coincidir con el Controller sugerido
+    return this.http.put<Resource>(`${this.resourcesUrl}/${id}/archivo`, formData);
+  }
+
   /**
    * Validar archivo antes de subirlo
    */
