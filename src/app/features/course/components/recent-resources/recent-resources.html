@@ -7,7 +7,7 @@
   } @else {
     <div class="results-list">
       @for (resource of filterByType('Apuntes'); track resource.id_recurso) {
-        <div class="resource-card">
+        <a class="resource-card" [routerLink]="['/recursos', resource.id_recurso]">
           <div class="resource-image">
             <span>[IMG]</span>
           </div>
@@ -20,7 +20,7 @@
               {{ resource.formato }}
             </span>
           </div>
-        </div>
+        </a>
       } @empty {
         <p>No hay recursos de este tipo.</p>
       }
@@ -37,7 +37,7 @@
   } @else {
     <div class="results-list">
       @for (resource of filterByType('Practicas'); track resource.id_recurso) {
-        <div class="resource-card">
+        <a class="resource-card" [routerLink]="['/recursos', resource.id_recurso]">
           <div class="resource-image">
             <span>[IMG]</span>
           </div>
@@ -50,7 +50,7 @@
               {{ resource.formato }}
             </span>
           </div>
-        </div>
+        </a>
       } @empty {
         <p>No hay recursos de este tipo.</p>
       }
@@ -67,7 +67,7 @@
   } @else {
     <div class="results-list">
       @for (resource of filterByType('Ejercicios'); track resource.id_recurso) {
-        <div class="resource-card">
+        <a class="resource-card" [routerLink]="['/recursos', resource.id_recurso]">
           <div class="resource-image">
             <span>[IMG]</span>
           </div>
@@ -80,7 +80,7 @@
               {{ resource.formato }}
             </span>
           </div>
-        </div>
+        </a>
       } @empty {
         <p>No hay recursos de este tipo.</p>
       }
@@ -97,7 +97,7 @@
   } @else {
     <div class="results-list">
       @for (resource of filterByType('Otros'); track resource.id_recurso) {
-        <div class="resource-card">
+        <a class="resource-card" [routerLink]="['/recursos', resource.id_recurso]">
           <div class="resource-image">
             <span>[IMG]</span>
           </div>
@@ -110,7 +110,7 @@
               {{ resource.formato }}
             </span>
           </div>
-        </div>
+        </a>
       } @empty {
         <p>No hay recursos de este tipo.</p>
       }

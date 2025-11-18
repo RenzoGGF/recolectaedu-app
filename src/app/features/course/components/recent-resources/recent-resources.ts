@@ -5,10 +5,11 @@ import {ResourceService} from '../../../../core/services/resource.service';
 import {catchError, of, tap} from 'rxjs';
 import {HttpErrorResponse} from '@angular/common/http';
 import {CommonModule} from '@angular/common';
+import {RouterLink} from '@angular/router';
 
 @Component({
   selector: 'app-recent-resources',
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './recent-resources.html',
   styleUrl: './recent-resources.css',
   changeDetection: ChangeDetectionStrategy.OnPush

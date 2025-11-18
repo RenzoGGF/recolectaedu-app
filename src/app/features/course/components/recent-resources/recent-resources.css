@@ -6,6 +6,8 @@
 
 .resource-card {
   display: flex;
+  text-decoration: none;
+  color: inherit;
   gap: 20px;
   align-items: flex-start;
   background-color: #ffffff;
