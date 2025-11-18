@@ -1,7 +1,7 @@
-import { Component, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
-import { AuthService } from '../../../core/services/auth.service';
+import {Component, computed} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {RouterLink} from '@angular/router';
+import {AuthService} from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-user-profile-page',
@@ -67,7 +67,7 @@ import { AuthService } from '../../../core/services/auth.service';
               ¡Consigue [50] puntos más para subir de nivel!
             </p>
 
-            <button type="button" class="btn-primary">
+            <button type="button" class="btn-primary" [routerLink]="['/biblioteca']">
               VER BIBLIOTECA DEL USUARIO
             </button>
           </div>
@@ -298,15 +298,15 @@ import { AuthService } from '../../../core/services/auth.service';
   `]
 })
 export class UserProfilePageComponent {
-  constructor(private authService: AuthService) {}
-
   userName = computed(() => this.authService.getUserName());
   userUniversity = computed(() => this.authService.getUserUniversity());
-
   // Mock por ahora; luego se conectan al backend
   followers = 0;
   following = 0;
   uploads = 0;
   votes = 0;
   comments = 0;
+
+  constructor(private authService: AuthService) {
+  }
 }
