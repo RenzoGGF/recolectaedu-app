@@ -14,7 +14,8 @@ export class ResourceService {
 
   // BASE PARA PÚBLICO!!! (SI TIENEN UN MÉTODO DE RECURSO QUE NO SEA PÚBLICO, HACER OTRO BASE URL O SERVICIO)
   private baseUrl = `${environment.apiUrl}/public`;
-  
+  private baseUrlRecursos = `${this.baseUrl}/recursos`;
+
   // ⭐ BASE URL PARA RECURSOS AUTENTICADOS (sin /public)
   private resourcesUrl = `${environment.apiUrl}/recursos`;
 
@@ -74,13 +75,13 @@ export class ResourceService {
   createResourceFile(archivo: File, metadata: RecursoArchivoCreateRequest): Observable<Resource> {
     const formData = new FormData();
     formData.append('archivo', archivo);
-    
+
     // El metadata debe ir como JSON string en un Blob
     const metadataBlob = new Blob([JSON.stringify(metadata)], {
       type: 'application/json'
     });
     formData.append('metadata', metadataBlob);
-    
+
     return this.http.post<Resource>(this.resourcesUrl, formData);
   }
 
@@ -96,19 +97,19 @@ export class ResourceService {
         error: 'El archivo excede el tamaño máximo permitido de 20 MB.'
       };
     }
-    
+
     // Validar extensión
     const allowedExtensions = ['pdf', 'doc', 'docx'];
     const fileName = file.name.toLowerCase();
     const extension = fileName.split('.').pop();
-    
+
     if (!extension || !allowedExtensions.includes(extension)) {
       return {
         valid: false,
         error: 'Extensión de archivo no permitida. Solo se aceptan: PDF, DOC, DOCX.'
       };
     }
-    
+
     return { valid: true };
   }
 
@@ -133,6 +134,6 @@ export class ResourceService {
    * GET /api/v1/recursos/{id}
    */
   getResourceById(id: number): Observable<Resource> {
-    return this.http.get<Resource>(`${this.resourcesUrl}/${id}`);
+    return this.http.get<Resource>(`${this.baseUrlRecursos}/${id}`);
   }
 }

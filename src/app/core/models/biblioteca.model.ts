@@ -7,5 +7,6 @@ export interface BibliotecaResponse {
 export interface BibliotecaRecursoResponse {
   id_biblioteca_recurso: number;
   titulo_recurso: string;
+  id_recurso: number;
   agregado_el: string;
 }

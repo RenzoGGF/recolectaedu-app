@@ -20,4 +20,11 @@ export class BibliotecaService {
       `${this.apiUrl}/bibliotecas/${idBiblioteca}/recursos`
     );
   }
+
+  guardarRecursoEnBiblioteca(idBiblioteca: number, idRecurso: number): Observable<void> {
+    return this.http.post<void>(
+      `${this.apiUrl}/bibliotecas/${idBiblioteca}/recursos`,
+      { id_recurso: idRecurso }
+    );
+  }
 }

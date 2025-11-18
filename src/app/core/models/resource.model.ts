@@ -19,6 +19,19 @@ export interface Resource {
   nombreUniversidad?: string;
 }
 
+export interface ResourceResponse {
+  id_recurso: number;
+  titulo: string;
+  descripcion: string;
+  contenido: string;
+  formato: ResourceFormat;
+  tipo: ResourceType;
+  creado_el: string;
+  id_usuario: number;
+  id_curso: number;
+  autorNombre: string;
+}
+
 export interface SearchResourceParams {
   keyword?: string;
   cursoId?: number;

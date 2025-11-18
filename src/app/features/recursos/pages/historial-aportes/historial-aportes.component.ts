@@ -1,69 +1,62 @@
 // src/app/features/recursos/pages/historial-aportes/historial-aportes.component.ts
 // CREAR NUEVO ARCHIVO
 
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { UsuarioService } from '../../../../core/services/usuario.service';
-import { 
-  Aporte, 
-  RespuestaPagina,
-  TIPOS_RECURSO_FILTRO,
-  ORDENAMIENTO_OPCIONES,
+import {Component, computed, inject, OnInit, signal} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
+import {ActivatedRoute, Router, RouterLink} from '@angular/router';
+import {UsuarioService} from '../../../../core/services/usuario.service';
+import {
+  Aporte,
+  getFormatoLabel,
   getTipoIniciales,
-  getFormatoLabel
+  ORDENAMIENTO_OPCIONES,
+  RespuestaPagina,
+  TIPOS_RECURSO_FILTRO
 } from '../../../../core/models/aporte.model';
+import {HttpErrorResponse} from '@angular/common/http';
 
 @Component({
   selector: 'app-historial-aportes',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './historial-aportes.component.html',
   styleUrl: './historial-aportes.component.css'
 })
 export class HistorialAportesComponent implements OnInit {
-  private readonly usuarioService = inject(UsuarioService);
-  private readonly router = inject(Router);
-  private readonly route = inject(ActivatedRoute);
-
   // Signals para estado
   aportes = signal<Aporte[]>([]);
   loading = signal(false);
   errorMessage = signal<string | null>(null);
-  
   // Paginación
   currentPage = signal(0);
   pageSize = signal(10);
   totalElements = signal(0);
   totalPages = signal(0);
   isLastPage = signal(false);
-  
   // Filtros
   tipoFiltro = signal<string>('');
   ordenamiento = signal<string>('creado_el,desc');
-  
   // Stats del usuario
   userStats = signal({
     totalSubidos: 0,
     totalVotos: 0,
     totalSeguidores: 0
   });
-  
   // Opciones para dropdowns
   tiposRecurso = TIPOS_RECURSO_FILTRO;
   opcionesOrdenamiento = ORDENAMIENTO_OPCIONES;
-  
   // Usuario actual (TODO: obtener del AuthService)
   currentUserId = 1;
-  
   // Computed
   hasAportes = computed(() => this.aportes().length > 0);
   isEmpty = computed(() => !this.loading() && this.aportes().length === 0);
-  
   // Helpers para template
   getTipoIniciales = getTipoIniciales;
   getFormatoLabel = getFormatoLabel;
+  private readonly usuarioService = inject(UsuarioService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   ngOnInit(): void {
     this.loadAportes();
@@ -73,9 +66,9 @@ export class HistorialAportesComponent implements OnInit {
   loadAportes(): void {
     this.loading.set(true);
     this.errorMessage.set(null);
-    
+
     const sortArray = this.ordenamiento().split(',');
-    
+
     this.usuarioService.getAportes({
       usuarioId: this.currentUserId,
       tipo: this.tipoFiltro() || undefined,
@@ -92,21 +85,10 @@ export class HistorialAportesComponent implements OnInit {
         this.isLastPage.set(response.ultimo);
         this.loading.set(false);
       },
-      error: (error) => {
+      error: (error: HttpErrorResponse) => {
         console.error('Error al cargar aportes:', error);
         this.errorMessage.set('Error al cargar tus aportes. Intenta nuevamente.');
         this.loading.set(false);
-      }
-    });
-  }
-
-  private loadUserStats(): void {
-    this.usuarioService.getUserStats(this.currentUserId).subscribe({
-      next: (stats) => {
-        this.userStats.set(stats);
-      },
-      error: (error) => {
-        console.error('Error al cargar estadísticas:', error);
       }
     });
   }
@@ -125,7 +107,7 @@ export class HistorialAportesComponent implements OnInit {
     if (page >= 0 && page < this.totalPages()) {
       this.currentPage.set(page);
       this.loadAportes();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({top: 0, behavior: 'smooth'});
     }
   }
 
@@ -143,10 +125,10 @@ export class HistorialAportesComponent implements OnInit {
 
   formatDate(dateString: string): string {
     const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    return date.toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     });
   }
 
@@ -169,5 +151,16 @@ export class HistorialAportesComponent implements OnInit {
 
   irASubirRecurso(): void {
     this.router.navigate(['/recursos/publicar']);
+  }
+
+  private loadUserStats(): void {
+    this.usuarioService.getUserStats(this.currentUserId).subscribe({
+      next: (stats) => {
+        this.userStats.set(stats);
+      },
+      error: (error: HttpErrorResponse) => {
+        console.error('Error al cargar estadísticas:', error);
+      }
+    });
   }
 }
