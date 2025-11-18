@@ -1,14 +1,17 @@
 // src/app/features/recursos/pages/historial-aportes/historial-aportes.component.ts
-// CREAR NUEVO ARCHIVO
+// REEMPLAZAR las líneas relevantes:
 
-import {Component, computed, inject, OnInit, signal} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {FormsModule} from '@angular/forms';
-import {ActivatedRoute, Router, RouterLink} from '@angular/router';
-import {UsuarioService} from '../../../../core/services/usuario.service';
-import {
-  Aporte,
-  getFormatoLabel,
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { UsuarioService } from '../../../../core/services/usuario.service';
+import { AuthService } from '../../../../core/services/auth.service';
+import { 
+  Aporte, 
+  RespuestaPagina,
+  TIPOS_RECURSO_FILTRO,
+  ORDENAMIENTO_OPCIONES,
   getTipoIniciales,
   ORDENAMIENTO_OPCIONES,
   RespuestaPagina,
@@ -24,6 +27,11 @@ import {HttpErrorResponse} from '@angular/common/http';
   styleUrl: './historial-aportes.component.css'
 })
 export class HistorialAportesComponent implements OnInit {
+  private readonly usuarioService = inject(UsuarioService);
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+
   // Signals para estado
   aportes = signal<Aporte[]>([]);
   loading = signal(false);
@@ -37,17 +45,14 @@ export class HistorialAportesComponent implements OnInit {
   // Filtros
   tipoFiltro = signal<string>('');
   ordenamiento = signal<string>('creado_el,desc');
-  // Stats del usuario
-  userStats = signal({
-    totalSubidos: 0,
-    totalVotos: 0,
-    totalSeguidores: 0
-  });
+  
   // Opciones para dropdowns
   tiposRecurso = TIPOS_RECURSO_FILTRO;
   opcionesOrdenamiento = ORDENAMIENTO_OPCIONES;
-  // Usuario actual (TODO: obtener del AuthService)
-  currentUserId = 1;
+  
+  // Usuario actual
+  currentUserId = this.authService.getUserId() || 1; // Fallback a 1
+  
   // Computed
   hasAportes = computed(() => this.aportes().length > 0);
   isEmpty = computed(() => !this.loading() && this.aportes().length === 0);
@@ -60,7 +65,7 @@ export class HistorialAportesComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadAportes();
-    this.loadUserStats();
+    // ⭐ NO cargar stats aquí - el sidebar lo hace
   }
 
   loadAportes(): void {
@@ -87,7 +92,15 @@ export class HistorialAportesComponent implements OnInit {
       },
       error: (error: HttpErrorResponse) => {
         console.error('Error al cargar aportes:', error);
-        this.errorMessage.set('Error al cargar tus aportes. Intenta nuevamente.');
+        
+        if (error.status === 500) {
+          this.errorMessage.set('Error del servidor. Por favor, contacta al equipo de backend.');
+        } else if (error.status === 404) {
+          this.errorMessage.set('Usuario no encontrado.');
+        } else {
+          this.errorMessage.set('Error al cargar tus aportes. Intenta nuevamente.');
+        }
+        
         this.loading.set(false);
       }
     });
@@ -137,15 +150,12 @@ export class HistorialAportesComponent implements OnInit {
     return `${year}/${year + 1}`;
   }
 
-  // Navegación (para cuando implementen editar/eliminar)
   editarRecurso(id: number): void {
-    // TODO: Implementar cuando tengan la página de editar
     console.log('Editar recurso:', id);
     this.router.navigate(['/recursos/editar', id]);
   }
 
   eliminarRecurso(id: number): void {
-    // TODO: Implementar cuando tengan el servicio de eliminar
     console.log('Eliminar recurso:', id);
   }
 

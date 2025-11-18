@@ -4,6 +4,7 @@ import { Observable, tap, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Aporte, RespuestaPagina, AportesParams } from '../models/aporte.model';
 import { HttpParams } from '@angular/common/http';
+import { UsuarioStats } from '../models/usuario-stats.model';
 
 
 @Injectable({
@@ -84,16 +85,13 @@ export class UsuarioService {
     return this.http.get<RespuestaPagina<Aporte>>(url, { params: httpParams });
   }
 
-  /**
-   * Obtener estadísticas resumidas del usuario
-   * TODO: Implementar cuando exista el endpoint
+    /**
+   * US-17: Obtener estadísticas del usuario
+   * GET /api/v1/usuarios/{usuarioId}/estadisticas
    */
-  getUserStats(usuarioId: number): Observable<any> {
-    // Por ahora retornamos valores mock
-    return of({
-      totalSubidos: 0,
-      totalVotos: 0,
-      totalSeguidores: 0
-    });
+  getUserStats(usuarioId: number): Observable<UsuarioStats> {
+    const url = `${this.apiUrl}/${usuarioId}/estadisticas`;
+    return this.http.get<UsuarioStats>(url);
   }
+
   }
