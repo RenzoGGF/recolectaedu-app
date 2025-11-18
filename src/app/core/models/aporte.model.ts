@@ -1,5 +1,5 @@
 // src/app/core/models/aporte.model.ts
-// HISTORIAL APORTES POR USUARIO
+// REEMPLAZAR TODO EL CONTENIDO:
 
 export interface Aporte {
   id: number;
@@ -15,7 +15,8 @@ export interface Aporte {
   comentarios: number;
 }
 
-export type TipoRecurso = 'APUNTES' | 'PRACTICAS' | 'EJERCICIOS' | 'LIBROS' | 'ENLACES' | 'GUIAS' | 'OTROS';
+// Usar los mismos valores que el backend
+export type TipoRecurso = 'Apuntes' | 'Practicas' | 'Ejercicios' | 'Otros';
 
 export interface RespuestaPagina<T> {
   contenido: T[];
@@ -35,16 +36,13 @@ export interface AportesParams {
   sort?: string[];
 }
 
-// Constantes para filtros
+// Solo los tipos que existen en el backend
 export const TIPOS_RECURSO_FILTRO = [
   { value: '', label: 'Todos' },
-  { value: 'APUNTES', label: 'Apuntes' },
-  { value: 'PRACTICAS', label: 'Prácticas' },
-  { value: 'EJERCICIOS', label: 'Ejercicios' },
-  { value: 'LIBROS', label: 'Libros' },
-  { value: 'ENLACES', label: 'Enlaces' },
-  { value: 'GUIAS', label: 'Guías' },
-  { value: 'OTROS', label: 'Otros' }
+  { value: 'Apuntes', label: 'Apuntes' },
+  { value: 'Practicas', label: 'Prácticas' },
+  { value: 'Ejercicios', label: 'Ejercicios' },
+  { value: 'Otros', label: 'Otros' }
 ];
 
 export const ORDENAMIENTO_OPCIONES = [
@@ -54,16 +52,13 @@ export const ORDENAMIENTO_OPCIONES = [
   { value: 'titulo,desc', label: 'Título (Z-A)' }
 ];
 
-// Helper para obtener iniciales del tipo
+// Solo los tipos que existen
 export function getTipoIniciales(tipo: TipoRecurso): string {
   const iniciales: Record<TipoRecurso, string> = {
-    'APUNTES': 'APT',
-    'PRACTICAS': 'PRC',
-    'EJERCICIOS': 'EJR',
-    'LIBROS': 'LIB',
-    'ENLACES': 'ENL',
-    'GUIAS': 'GUI',
-    'OTROS': 'OTR'
+    'Apuntes': 'APT',
+    'Practicas': 'PRC',
+    'Ejercicios': 'EJR',
+    'Otros': 'OTR'
   };
   return iniciales[tipo] || 'OTR';
 }

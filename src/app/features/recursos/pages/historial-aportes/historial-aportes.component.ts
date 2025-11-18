@@ -1,11 +1,12 @@
 // src/app/features/recursos/pages/historial-aportes/historial-aportes.component.ts
-// CREAR NUEVO ARCHIVO
+// REEMPLAZAR las líneas relevantes:
 
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UsuarioService } from '../../../../core/services/usuario.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { 
   Aporte, 
   RespuestaPagina,
@@ -24,6 +25,7 @@ import {
 })
 export class HistorialAportesComponent implements OnInit {
   private readonly usuarioService = inject(UsuarioService);
+  private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
@@ -43,19 +45,12 @@ export class HistorialAportesComponent implements OnInit {
   tipoFiltro = signal<string>('');
   ordenamiento = signal<string>('creado_el,desc');
   
-  // Stats del usuario
-  userStats = signal({
-    totalSubidos: 0,
-    totalVotos: 0,
-    totalSeguidores: 0
-  });
-  
   // Opciones para dropdowns
   tiposRecurso = TIPOS_RECURSO_FILTRO;
   opcionesOrdenamiento = ORDENAMIENTO_OPCIONES;
   
-  // Usuario actual (TODO: obtener del AuthService)
-  currentUserId = 1;
+  // Usuario actual
+  currentUserId = this.authService.getUserId() || 1; // Fallback a 1
   
   // Computed
   hasAportes = computed(() => this.aportes().length > 0);
@@ -67,7 +62,7 @@ export class HistorialAportesComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadAportes();
-    this.loadUserStats();
+    // ⭐ NO cargar stats aquí - el sidebar lo hace
   }
 
   loadAportes(): void {
@@ -94,19 +89,16 @@ export class HistorialAportesComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error al cargar aportes:', error);
-        this.errorMessage.set('Error al cargar tus aportes. Intenta nuevamente.');
+        
+        if (error.status === 500) {
+          this.errorMessage.set('Error del servidor. Por favor, contacta al equipo de backend.');
+        } else if (error.status === 404) {
+          this.errorMessage.set('Usuario no encontrado.');
+        } else {
+          this.errorMessage.set('Error al cargar tus aportes. Intenta nuevamente.');
+        }
+        
         this.loading.set(false);
-      }
-    });
-  }
-
-  private loadUserStats(): void {
-    this.usuarioService.getUserStats(this.currentUserId).subscribe({
-      next: (stats) => {
-        this.userStats.set(stats);
-      },
-      error: (error) => {
-        console.error('Error al cargar estadísticas:', error);
       }
     });
   }
@@ -155,15 +147,12 @@ export class HistorialAportesComponent implements OnInit {
     return `${year}/${year + 1}`;
   }
 
-  // Navegación (para cuando implementen editar/eliminar)
   editarRecurso(id: number): void {
-    // TODO: Implementar cuando tengan la página de editar
     console.log('Editar recurso:', id);
     this.router.navigate(['/recursos/editar', id]);
   }
 
   eliminarRecurso(id: number): void {
-    // TODO: Implementar cuando tengan el servicio de eliminar
     console.log('Eliminar recurso:', id);
   }
 

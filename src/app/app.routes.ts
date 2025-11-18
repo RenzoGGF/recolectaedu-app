@@ -20,6 +20,7 @@ export const routes: Routes = [
   {
     path: 'profile',
     component: SearchLayoutComponent,
+    canActivate: [authGuard],
     loadChildren: () =>
       import('./features/user/user.routes').then(m => m.USER_ROUTES)
   },

@@ -102,4 +102,27 @@ export class AuthService {
     localStorage.removeItem('recolectaedu_auth');
     this.router.navigate(['/auth/login']);
   }
+
+  getUserId(): number | null {
+    const authState = this._authState();
+    if (!authState) return null;
+    
+    // TODO TEMPORAL: Hardcoded mientras el backend no envía el userId
+    console.warn('⚠️ TEMPORAL: Usando userId hardcodeado. El backend debe enviar el userId en AuthResponse o token.');
+    
+    // Mapeo temporal email → userId
+    // ELIMINAR ESTO cuando el backend envíe el userId real
+    const emailToIdMap: Record<string, number> = {
+      'eduardo.bravo@example.com': 1,
+      'test@example.com': 1,
+      // Agregar más si necesitas probar con otros usuarios
+    };
+    
+    const email = authState.email;
+    const tempUserId = emailToIdMap[email] || 1; // Default a 1
+    
+    console.log(`🔍 Email: ${email} → userId temporal: ${tempUserId}`);
+    
+    return tempUserId;
+  }
 }
