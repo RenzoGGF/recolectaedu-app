@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Course } from '../models/course.model';
+import { UniversityRanking } from '../models/university.model';
 
 @Injectable({
   providedIn: 'root'
@@ -27,6 +28,11 @@ export class CourseService {
     const url = `${this.baseUrl}/cursos/${id}`;
 
     return this.http.get<Course>(url);
+  }
+
+  getRankingUniversidades(): Observable<UniversityRanking[]> {
+    const url = `${this.baseUrl}/universidades/ranking-recursos`;
+    return this.http.get<UniversityRanking[]>(url);
   }
 
 }
