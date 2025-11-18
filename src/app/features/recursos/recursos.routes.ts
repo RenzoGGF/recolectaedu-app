@@ -2,6 +2,7 @@
 
 import { Routes } from '@angular/router';
 import {ResourceDetailComponent} from './pages/resource-detail/resource-detail.component';
+import {authGuard} from '../../core/guards/auth.guard';
 
 export const RECURSOS_ROUTES: Routes = [
   {
@@ -12,14 +13,14 @@ export const RECURSOS_ROUTES: Routes = [
     // canActivate: [authGuard] // Descomentar cuando el AuthService esté listo
   },
   {
-    path: ':id',
-    component: ResourceDetailComponent
-  },
-  {
     path: 'mis-aportes',
-    loadComponent: () => 
+    loadComponent: () =>
       import('./pages/historial-aportes/historial-aportes.component')
         .then(m => m.HistorialAportesComponent),
-    // canActivate: [authGuard] // Descomentar cuando el AuthService esté listo
+    canActivate: [authGuard] // Descomentar cuando el AuthService esté listo
+  },
+  {
+    path: ':id',
+    component: ResourceDetailComponent
   }
 ];
