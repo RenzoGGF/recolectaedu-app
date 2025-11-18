@@ -4,6 +4,8 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Course } from '../models/course.model';
 import { UniversityRanking } from '../models/university.model';
+import { RankingResponse } from '../models/ranking.model';
+
 
 @Injectable({
   providedIn: 'root'
@@ -34,5 +36,37 @@ export class CourseService {
     const url = `${this.baseUrl}/universidades/ranking-recursos`;
     return this.http.get<UniversityRanking[]>(url);
   }
+
+    /**
+   * US-18: Obtener ranking de cursos por aportes
+   * GET /public/cursos/ranking-aportes
+   */
+  getRankingCursos(params?: {
+    universidad?: string;
+    carrera?: string;
+    page?: number;
+    size?: number;
+  }): Observable<RankingResponse> {
+    let httpParams = new HttpParams();
+    
+    if (params?.universidad) {
+      httpParams = httpParams.set('universidad', params.universidad);
+    }
+    if (params?.carrera) {
+      httpParams = httpParams.set('carrera', params.carrera);
+    }
+    if (params?.page !== undefined) {
+      httpParams = httpParams.set('page', params.page.toString());
+    }
+    if (params?.size !== undefined) {
+      httpParams = httpParams.set('size', params.size.toString());
+    }
+    
+    return this.http.get<RankingResponse>(
+      `${environment.apiUrl}/public/cursos/ranking-aportes`,
+      { params: httpParams }
+    );
+  }
+
 
 }
