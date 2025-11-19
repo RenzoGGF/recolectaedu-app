@@ -1,0 +1,28 @@
+<div class="results-list">
+  <h2>¡Bienvenido a la biblioteca de tu usuario!</h2>
+  @if (loading()) {
+    <p>Cargando recursos...</p>
+  } @else if (error()) {
+    <p class="error-text">{{ error() }}</p>
+  } @else {
+    @for (recurso of recursos(); track recurso.id_biblioteca_recurso) {
+      <article class="resource-card" (click)="verRecurso(recurso)">
+        <div class="resource-image">
+          <span>[IMG]</span>
+        </div>
+
+        <div class="resource-content">
+          <h3 class="resource-title">
+            {{ recurso.titulo_recurso }}
+          </h3>
+
+          <span class="added-date">
+            Agregado el {{ recurso.agregado_el | date:'dd/MM/yyyy' }}
+          </span>
+        </div>
+      </article>
+    } @empty {
+      <p>No tienes recursos guardados todavía.</p>
+    }
+  }
+</div>

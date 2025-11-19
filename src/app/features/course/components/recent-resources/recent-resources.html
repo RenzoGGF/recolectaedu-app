@@ -1,0 +1,119 @@
+<!-- Apuntes -->
+<div class="resource-group">
+  <h2>Apuntes</h2>
+
+  @if (isLoading()) {
+    <p>{{ loadingMessage() }}</p>
+  } @else {
+    <div class="results-list">
+      @for (resource of filterByType('Apuntes'); track resource.id_recurso) {
+        <a class="resource-card" [routerLink]="['/recursos', resource.id_recurso]">
+          <div class="resource-image">
+            <span>[IMG]</span>
+          </div>
+          <div class="resource-content">
+            <h3 class="resource-title">{{ resource.titulo }}</h3>
+            <span class="creation-date">
+              {{ resource.creado_el | date: 'yyyy/MM/dd' }}
+            </span>
+            <span class="format-type">
+              {{ resource.formato }}
+            </span>
+          </div>
+        </a>
+      } @empty {
+        <p>No hay recursos de este tipo.</p>
+      }
+    </div>
+  }
+</div>
+
+<!-- Prácticas -->
+<div class="resource-group">
+  <h2>Prácticas</h2>
+
+  @if (isLoading()) {
+    <p>{{ loadingMessage() }}</p>
+  } @else {
+    <div class="results-list">
+      @for (resource of filterByType('Practicas'); track resource.id_recurso) {
+        <a class="resource-card" [routerLink]="['/recursos', resource.id_recurso]">
+          <div class="resource-image">
+            <span>[IMG]</span>
+          </div>
+          <div class="resource-content">
+            <h3 class="resource-title">{{ resource.titulo }}</h3>
+            <span class="creation-date">
+              {{ resource.creado_el | date: 'yyyy/MM/dd' }}
+            </span>
+            <span class="format-type">
+              {{ resource.formato }}
+            </span>
+          </div>
+        </a>
+      } @empty {
+        <p>No hay recursos de este tipo.</p>
+      }
+    </div>
+  }
+</div>
+
+<!-- Ejercicios -->
+<div class="resource-group">
+  <h2>Ejercicios</h2>
+
+  @if (isLoading()) {
+    <p>{{ loadingMessage() }}</p>
+  } @else {
+    <div class="results-list">
+      @for (resource of filterByType('Ejercicios'); track resource.id_recurso) {
+        <a class="resource-card" [routerLink]="['/recursos', resource.id_recurso]">
+          <div class="resource-image">
+            <span>[IMG]</span>
+          </div>
+          <div class="resource-content">
+            <h3 class="resource-title">{{ resource.titulo }}</h3>
+            <span class="creation-date">
+              {{ resource.creado_el | date: 'yyyy/MM/dd' }}
+            </span>
+            <span class="format-type">
+              {{ resource.formato }}
+            </span>
+          </div>
+        </a>
+      } @empty {
+        <p>No hay recursos de este tipo.</p>
+      }
+    </div>
+  }
+</div>
+
+<!-- Otros -->
+<div class="resource-group">
+  <h2>Otros</h2>
+
+  @if (isLoading()) {
+    <p>{{ loadingMessage() }}</p>
+  } @else {
+    <div class="results-list">
+      @for (resource of filterByType('Otros'); track resource.id_recurso) {
+        <a class="resource-card" [routerLink]="['/recursos', resource.id_recurso]">
+          <div class="resource-image">
+            <span>[IMG]</span>
+          </div>
+          <div class="resource-content">
+            <h3 class="resource-title">{{ resource.titulo }}</h3>
+            <span class="creation-date">
+              {{ resource.creado_el | date: 'yyyy/MM/dd' }}
+            </span>
+            <span class="format-type">
+              {{ resource.formato }}
+            </span>
+          </div>
+        </a>
+      } @empty {
+        <p>No hay recursos de este tipo.</p>
+      }
+    </div>
+  }
+</div>

@@ -1,7 +1,12 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, tap, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { Aporte, RespuestaPagina, AportesParams } from '../models/aporte.model';
+import { HttpParams } from '@angular/common/http';
+import { UsuarioStats } from '../models/usuario-stats.model';
+import { UserProfile } from '../models/user-profile.model';
+
 
 @Injectable({
   providedIn: 'root'
@@ -26,6 +31,10 @@ export class UsuarioService {
     return this.http.get<any>(`${this.apiUrl}/id`);
   }
 
+    getCurrentProfile(): Observable<UserProfile> {
+    return this.http.get<UserProfile>(`${this.apiUrl}/me`);
+  }
+
   // POST - Crear
   create(data: any): Observable<any> {
     return this.http.post<any>(this.apiUrl, data).pipe(
@@ -46,6 +55,20 @@ export class UsuarioService {
     );
   }
 
+  updateProfile(
+    idUsuario: number,
+    payload: {
+      nombre: string;
+      apellidos: string;
+      universidad: string | null;
+      carrera: string | null;
+      ciclo: number | null;
+    }
+  ): Observable<UserProfile> {
+    return this.http.put<UserProfile>(`${this.apiUrl}/${idUsuario}/perfil`, payload);
+  }
+
+
   // DELETE - Eliminar
   delete(id: number): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}/id`).pipe(
@@ -54,4 +77,44 @@ export class UsuarioService {
       })
     );
   }
-}
+
+  deleteCurrentUser(): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/me`);
+  }
+
+      /**
+   * US-08: Obtener historial de aportes de un usuario
+   * GET /api/v1/usuarios/{usuarioId}/aportes
+   */
+  getAportes(params: AportesParams): Observable<RespuestaPagina<Aporte>> {
+    const url = `${this.apiUrl}/${params.usuarioId}/aportes`;
+    
+    let httpParams = new HttpParams()
+      .set('page', (params.page || 0).toString())
+      .set('size', (params.size || 10).toString());
+    
+    if (params.tipo) {
+      httpParams = httpParams.set('tipo', params.tipo);
+    }
+    
+    if (params.cursoId) {
+      httpParams = httpParams.set('cursoId', params.cursoId.toString());
+    }
+    
+    if (params.sort && params.sort.length === 2) {
+      httpParams = httpParams.set('sort', params.sort.join(','));
+    }
+    
+    return this.http.get<RespuestaPagina<Aporte>>(url, { params: httpParams });
+  }
+
+    /**
+   * US-17: Obtener estadísticas del usuario
+   * GET /api/v1/usuarios/{usuarioId}/estadisticas
+   */
+  getUserStats(usuarioId: number): Observable<UsuarioStats> {
+    const url = `${this.apiUrl}/${usuarioId}/estadisticas`;
+    return this.http.get<UsuarioStats>(url);
+  }
+
+  }

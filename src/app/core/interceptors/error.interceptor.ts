@@ -22,7 +22,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         // Si el error es 401 (Unauthorized), hacer logout
         if (error.status === 401) {
           authService.logout();
-          router.navigate(['/login']);
+          router.navigate(['/auth', 'login']);
         }
 
         // Si el error es 403 (Forbidden), redirigir
