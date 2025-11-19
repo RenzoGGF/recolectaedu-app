@@ -363,13 +363,8 @@ export class RegisterComponent {
       },
       error: (err) => {
         this.loading.set(false);
-        if (err.status === 409) {
-          this.serverError.set('El correo ya está registrado.');
-        } else if (err.status === 400) {
-          this.serverError.set('Datos inválidos. Revisa el formulario.');
-        } else {
-          this.serverError.set('Ocurrió un error al crear la cuenta.');
-        }
+        console.error('❌ Error al registrar:', err);
+        this.serverError.set('Ocurrió un error al crear la cuenta.');
       }
     });
   }

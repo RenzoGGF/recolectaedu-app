@@ -10,7 +10,7 @@ export const RECURSOS_ROUTES: Routes = [
     loadComponent: () =>
       import('./pages/publicar-recurso/publicar-recurso.component')
         .then(m => m.PublicarRecursoComponent),
-    canActivate: [authGuard] // Descomentar cuando el AuthService esté listo
+    canActivate: [authGuard]
   },
   {
     path: 'editar/:id',
@@ -23,7 +23,7 @@ export const RECURSOS_ROUTES: Routes = [
     loadComponent: () =>
       import('./pages/historial-aportes/historial-aportes.component')
         .then(m => m.HistorialAportesComponent),
-    canActivate: [authGuard] // Descomentar cuando el AuthService esté listo
+    canActivate: [authGuard]
   },
   {
     path: ':id',

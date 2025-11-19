@@ -1,4 +1,6 @@
-// CAMBIO 1: Importamos 'RouterLink'
+// src/app/features/institution/pages/institution-detail.component.ts
+// REEMPLAZAR TODO EL CONTENIDO DEL ARCHIVO CON ESTO:
+
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -12,12 +14,20 @@ import { Course } from '../../../core/models/course.model';
 @Component({
   selector: 'app-institution-detail',
   standalone: true,
-  // CAMBIO 2: Añadimos 'RouterLink' a los imports
   imports: [CommonModule, FaIconComponent, RouterLink],
   template: `
     <div class="institution-container">
 
-      <h1 class="uni-title">{{ universityName() }}</h1>
+      <!-- ⭐ NUEVO: Header con título y botón ranking -->
+      <div class="institution-header">
+        <h1 class="uni-title">{{ universityName() }}</h1>
+        <a 
+          [routerLink]="['/instituciones', universityName(), 'ranking']" 
+          class="btn-ranking"
+        >
+          🏆 Ver Ranking
+        </a>
+      </div>
 
       <div class="internal-search">
         <input type="text" placeholder="Busca documentos en esta institución">
@@ -64,24 +74,55 @@ import { Course } from '../../../core/models/course.model';
       </div>
     </div>
   `,
-  // CAMBIO 4: Añadimos estilos para el nuevo <a>
   styles: [`
     :host {
       display: block;
       width: 100%;
     }
+
+    /* ⭐ NUEVO: Header con título y botón */
+    .institution-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      gap: 20px;
+    }
+
     .uni-title {
       font-size: 1.8rem;
       font-weight: 700;
-      text-align: center;
-      margin-bottom: 20px;
       color: #000;
+      margin: 0; /* ⭐ CAMBIADO: antes tenía margin-bottom */
     }
+
+    /* ⭐ NUEVO: Botón de ranking */
+    .btn-ranking {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: transform 0.2s, box-shadow 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn-ranking:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
     .internal-search {
       position: relative;
       max-width: 600px;
       margin: 0 auto 40px auto;
     }
+
     .internal-search input {
       width: 100%;
       padding: 12px 40px 12px 20px;
@@ -90,6 +131,7 @@ import { Course } from '../../../core/models/course.model';
       background-color: #FFFFFF;
       font-size: 0.95rem;
     }
+
     .search-icon {
       position: absolute;
       right: 20px;
@@ -97,50 +139,56 @@ import { Course } from '../../../core/models/course.model';
       transform: translateY(-50%);
       color: #555;
     }
+
     .content-grid {
       display: grid;
       grid-template-columns: 1fr 250px;
       gap: 40px;
       align-items: start;
     }
+
     .section-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 20px;
     }
+
     .section-header h2 {
       font-size: 1.4rem;
       font-weight: 700;
       margin: 0;
     }
+
     .sort-dropdown select {
       padding: 5px 10px;
       border-radius: 5px;
       border: 1px solid #AAA;
     }
+
     .courses-list {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 20px 10px;
     }
 
-    /* ¡AQUÍ LOS NUEVOS ESTILOS! */
     .course-item {
       display: flex;
       align-items: center;
       gap: 10px;
       overflow: hidden;
-      text-decoration: none; /* Quitamos el subrayado feo del link */
+      text-decoration: none;
     }
+
     .folder-icon {
       color: #32CD32;
       font-size: 1.8rem;
       flex-shrink: 0;
     }
+
     .course-item span {
       font-weight: 600;
-      color: #0D8EFF; /* Color de link */
+      color: #0D8EFF;
       font-size: 1rem;
       line-height: 1.2;
       white-space: nowrap;
@@ -148,10 +196,10 @@ import { Course } from '../../../core/models/course.model';
       text-overflow: ellipsis;
       transition: text-decoration 0.2s ease;
     }
+
     .course-item:hover span {
-      text-decoration: underline; /* Subrayado al pasar el mouse */
+      text-decoration: underline;
     }
-    /* (Fin de los estilos nuevos) */
 
     .categories-card {
       background-color: #FFFFFF;
@@ -164,6 +212,7 @@ import { Course } from '../../../core/models/course.model';
       flex-direction: column;
       height: calc(80vh);
     }
+
     .categories-card h3 {
       font-size: 1rem;
       font-weight: 700;
@@ -172,12 +221,14 @@ import { Course } from '../../../core/models/course.model';
       margin-bottom: 25px;
       line-height: 1.3;
     }
+
     .stats-container {
       display: flex;
       flex-direction: column;
       gap: 15px;
       flex-grow: 1;
     }
+
     .stat-row {
       display: flex;
       justify-content: space-between;
@@ -185,11 +236,26 @@ import { Course } from '../../../core/models/course.model';
       padding-bottom: 10px;
       border-bottom: 1px solid #f0f0f0;
     }
+
     .stat-row:last-child {
       border-bottom: none;
     }
+
     .stat-row strong {
       font-weight: 700;
+    }
+
+    /* ⭐ NUEVO: Responsive para el header */
+    @media (max-width: 768px) {
+      .institution-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+      }
+
+      .btn-ranking {
+        justify-content: center;
+      }
     }
   `]
 })
@@ -201,7 +267,7 @@ export class InstitutionDetailComponent implements OnInit {
   private courseService = inject(CourseService);
 
   universityName = signal('');
-  courses = signal<Course[]>([]); // Ahora es de tipo Course[]
+  courses = signal<Course[]>([]);
   loadingMessage = signal('Cargando cursos populares...');
 
   ngOnInit() {
@@ -209,7 +275,7 @@ export class InstitutionDetailComponent implements OnInit {
       const uniName = params['universidad'];
       if (uniName) {
         this.universityName.set(uniName);
-        this.loadCourses(uniName); // Ya estabas llamando a esto
+        this.loadCourses(uniName);
       } else {
         this.loadingMessage.set('Universidad no especificada.');
       }
@@ -222,7 +288,7 @@ export class InstitutionDetailComponent implements OnInit {
 
     this.courseService.getCursosPopulares(universityName).pipe(
       tap((data: Course[]) => {
-        this.courses.set(data); // El signal se llena con datos reales
+        this.courses.set(data);
         if (data.length === 0) {
           this.loadingMessage.set('Esta institución no cuenta con cursos populares.');
         }
