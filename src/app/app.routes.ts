@@ -24,7 +24,14 @@ export const routes: Routes = [
     loadChildren: () =>
       import('./features/user/user.routes').then(m => m.USER_ROUTES)
   },
-
+  {
+    path: 'membresia',
+    component: SearchLayoutComponent,
+    loadChildren: () =>
+      import('./features/membership/membership.routes').then(
+        (m) => m.MEMBERSHIP_ROUTES
+      )
+  },
   {
     path: 'search',
     component: SearchLayoutComponent,

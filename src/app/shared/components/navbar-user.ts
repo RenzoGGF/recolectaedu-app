@@ -35,7 +35,7 @@ import { AuthService } from '../../core/services/auth.service';
         <a [routerLink]="['/instituciones']" class="nav-link">Instituciones Educativas</a>
 
         @if (authService.isAuthenticated()) {
-          <a [routerLink]="['/premium']" class="nav-link-premium">Premium</a>
+          <a [routerLink]="['/membresia']" class="nav-link-premium">Premium</a>
 
           <div class="user-menu">
             <button
