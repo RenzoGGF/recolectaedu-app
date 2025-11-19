@@ -55,68 +55,104 @@ export class HistorialAportesComponent implements OnInit {
   opcionesOrdenamiento = ORDENAMIENTO_OPCIONES;
 
   // Usuario actual
-  currentUserId = this.authService.getUserId() || 1;
+  currentUserId = signal<number | null>(null);
 
   // Computed
   hasAportes = computed(() => this.aportes().length > 0);
   isEmpty = computed(() => !this.loading() && this.aportes().length === 0);
 
-  // ⭐ Helpers para template
+  //  Helpers para template
   getTipoIniciales = getTipoIniciales;
 
-  ngOnInit(): void {
-    this.loadAportes();
-    this.loadUserStats(); //
-  }
+  async ngOnInit(): Promise<void> {
+      //  NUEVO: Obtener userId y validar ANTES de cargar datos
+      const userId = await this.authService.getUserId();
+      
+      if (!userId) {
+        this.errorMessage.set('No se pudo obtener tu identificación. Por favor, inicia sesión nuevamente.');
+        console.error('❌ No hay userId en AuthService');
+        setTimeout(() => {
+          this.router.navigate(['/auth/login']);
+        }, 2000);
+        return;
+      }
+      
+      console.log('✅ Usuario autenticado con ID:', userId);
+      this.currentUserId.set(userId);
+      
+      this.loadAportes();
+      this.loadUserStats();
+    }
 
   loadAportes(): void {
-    this.loading.set(true);
-    this.errorMessage.set(null);
+      //  CAMBIO: Obtener userId del signal
+      const userId = this.currentUserId();
+      
+      if (!userId) {
+        this.errorMessage.set('Usuario no autenticado');
+        return;
+      }
+      
+      this.loading.set(true);
+      this.errorMessage.set(null);
 
-    const sortArray = this.ordenamiento().split(',');
+      const sortArray = this.ordenamiento().split(',');
 
-    this.usuarioService.getAportes({
-      usuarioId: this.currentUserId,
-      tipo: this.tipoFiltro() || undefined,
-      page: this.currentPage(),
-      size: this.pageSize(),
-      sort: sortArray
-    }).subscribe({
-      next: (response: RespuestaPagina<Aporte>) => {
-        this.aportes.set(response.contenido);
-        this.currentPage.set(response.pagina);
-        this.pageSize.set(response.tamanio);
-        this.totalElements.set(response.totalElementos);
-        this.totalPages.set(response.totalPaginas);
-        this.isLastPage.set(response.ultimo);
-        this.loading.set(false);
-      },
-      error: (error: HttpErrorResponse) => {
-        console.error('Error al cargar aportes:', error);
-
-        if (error.status === 500) {
-          this.errorMessage.set('Error del servidor. Por favor, contacta al equipo de backend.');
-        } else if (error.status === 404) {
-          this.errorMessage.set('Usuario no encontrado.');
-        } else {
-          this.errorMessage.set('Error al cargar tus aportes. Intenta nuevamente.');
+      this.usuarioService.getAportes({
+        usuarioId: userId, // ✅ Usar el ID del signal
+        tipo: this.tipoFiltro() || undefined,
+        page: this.currentPage(),
+        size: this.pageSize(),
+        sort: sortArray
+      }).subscribe({
+        next: (response: RespuestaPagina<Aporte>) => {
+          this.aportes.set(response.contenido);
+          this.currentPage.set(response.pagina);
+          this.pageSize.set(response.tamanio);
+          this.totalElements.set(response.totalElementos);
+          this.totalPages.set(response.totalPaginas);
+          this.isLastPage.set(response.ultimo);
+          this.loading.set(false);
+          console.log('✅ Aportes cargados:', response.contenido.length);
+        },
+        error: (error: HttpErrorResponse) => {
+          console.error('❌ Error al cargar aportes:', error);
+          
+          if (error.status === 500) {
+            this.errorMessage.set('Error del servidor. Por favor, contacta al equipo de soporte.');
+          } else if (error.status === 404) {
+            this.errorMessage.set('Usuario no encontrado.');
+          } else if (error.status === 401 || error.status === 403) {
+            this.errorMessage.set('Sesión expirada. Redirigiendo al login...');
+            setTimeout(() => this.router.navigate(['/auth/login']), 2000);
+          } else {
+            this.errorMessage.set('Error al cargar tus aportes. Intenta nuevamente.');
+          }
+          
+          this.loading.set(false);
         }
+      });
+    }
 
-        this.loading.set(false);
+    private loadUserStats(): void {
+      //  CAMBIO: Obtener userId del signal
+      const userId = this.currentUserId();
+      
+      if (!userId) {
+        console.warn('⚠️ No se puede cargar stats sin userId');
+        return;
       }
-    });
-  }
-
-  private loadUserStats(): void {
-    this.usuarioService.getUserStats(this.currentUserId).subscribe({
-      next: (stats) => {
-        this.userStats.set(stats);
-      },
-      error: (error: HttpErrorResponse) => {
-        console.error('Error al cargar estadísticas:', error);
-      }
-    });
-  }
+      
+      this.usuarioService.getUserStats(userId).subscribe({
+        next: (stats) => {
+          this.userStats.set(stats);
+          console.log('✅ Estadísticas cargadas:', stats);
+        },
+        error: (error: HttpErrorResponse) => {
+          console.error('❌ Error al cargar estadísticas:', error);
+        }
+      });
+    }
 
   onTipoChange(): void {
     this.currentPage.set(0);
@@ -162,7 +198,7 @@ export class HistorialAportesComponent implements OnInit {
     return `${year}/${year + 1}`;
   }
 
-  // ⭐ AGREGAR ESTA FUNCIÓN si la usas en el HTML
+  //  AGREGAR ESTA FUNCIÓN si la usas en el HTML
   getFormatoLabel(formato: string): string {
     const labels: Record<string, string> = {
       'ARCHIVO': 'Archivo',

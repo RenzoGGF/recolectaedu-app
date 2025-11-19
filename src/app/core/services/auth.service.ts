@@ -5,7 +5,8 @@ import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { AuthRequest, RegisterRequest } from '../models/auth-request.model';
 import { AuthResponse } from '../models/auth-response.model';
-import { Observable, tap } from 'rxjs';
+import { UsuarioService } from './usuario.service'; // 
+import { Observable, tap, lastValueFrom } from 'rxjs'; // 
 
 @Injectable({
   providedIn: 'root'
@@ -13,12 +14,15 @@ import { Observable, tap } from 'rxjs';
 export class AuthService {
   private http = inject(HttpClient);
   private router = inject(Router);
+  private usuarioService = inject(UsuarioService); 
 
   private apiUrl = `${environment.apiUrl}/auth`;
 
   // Estado de autenticación compartido
   private _authState = signal<AuthResponse | null>(null);
   authState = this._authState.asReadonly();
+
+  private cachedUserId: number | null = null;
 
   constructor() {
     // Intentar restaurar sesión desde localStorage
@@ -124,31 +128,44 @@ setUserUniversity(university: string | null): void {
 
   logout(): void {
     this._authState.set(null);
+    this.cachedUserId = null;
     localStorage.removeItem('recolectaedu_auth');
     this.router.navigate(['/auth/login']);
   }
 
-  getUserId(): number | null {
-    const authState = this._authState();
-    if (!authState) return null;
+  /**
+   *  MODIFICADO: Obtiene el userId real desde /usuarios/me
+   * Cachea el resultado para evitar múltiples llamadas HTTP
+   */
+  async getUserId(): Promise<number | null> {
+    // Si no hay sesión, retornar null
+    if (!this.isAuthenticated()) {
+      console.warn('⚠️ No hay sesión activa');
+      return null;
+    }
 
-    // TODO TEMPORAL: Hardcoded mientras el backend no envía el userId
-    console.warn('⚠️ TEMPORAL: Usando userId hardcodeado. El backend debe enviar el userId en AuthResponse o token.');
+    // Si ya tenemos el userId en cache, retornarlo
+    if (this.cachedUserId !== null) {
+      console.log(`✅ getUserId() desde cache: ${this.cachedUserId}`);
+      return this.cachedUserId;
+    }
 
-    // Mapeo temporal email → userId
-    // ELIMINAR ESTO cuando el backend envíe el userId real
-    const emailToIdMap: Record<string, number> = {
-      'eduardo.bravo@example.com': 1,
-      'test@example.com': 1,
-      'email@example.com': 1
-      // Agregar más si necesitas probar con otros usuarios
-    };
-
-    const email = authState.email;
-    const tempUserId = emailToIdMap[email] || 1; // Default a 1
-
-    console.log(`🔍 Email: ${email} → userId temporal: ${tempUserId}`);
-
-    return tempUserId;
+    // Si no está en cache, obtenerlo del backend
+    try {
+      console.log('🔄 Obteniendo userId desde /usuarios/me...');
+      const profile = await lastValueFrom(this.usuarioService.getCurrentProfile());
+      
+      if (profile?.id_usuario) {
+        this.cachedUserId = profile.id_usuario;
+        console.log(`✅ getUserId() obtenido: ${this.cachedUserId}`);
+        return this.cachedUserId;
+      }
+      
+      console.error('❌ El perfil no tiene id_usuario');
+      return null;
+    } catch (error) {
+      console.error('❌ Error al obtener userId:', error);
+      return null;
+    }
   }
 }
