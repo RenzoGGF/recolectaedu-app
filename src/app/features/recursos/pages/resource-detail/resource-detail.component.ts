@@ -83,6 +83,10 @@ export class ResourceDetailComponent implements OnInit {
       next: (res: Resource) => {
         this.recurso.set(res);
 
+        if (this.idBiblioteca) {
+          this.verificarSiEstaGuardado(this.idBiblioteca, res.id_recurso);
+        }
+
         // Llamada extra para completar info del curso
         this.courseService.getCursoById(res.id_curso).subscribe({
           next: (curso) => {
@@ -117,11 +121,25 @@ export class ResourceDetailComponent implements OnInit {
     this.bibliotecaService.obtenerBibliotecaUsuario().subscribe({
       next: (biblioteca: BibliotecaResponse) => {
         this.idBiblioteca = biblioteca.id_biblioteca;
+
+        const recurso = this.recurso();
+        if (recurso) {
+          this.verificarSiEstaGuardado(biblioteca.id_biblioteca, recurso.id_recurso);
+        }
       },
       error: (err: HttpErrorResponse) => {
         console.error(err);
         this.idBiblioteca = null;
       }
+    });
+  }
+
+  private verificarSiEstaGuardado(idBiblioteca: number, idRecurso: number): void {
+    this.bibliotecaService.verificarRecursoGuardado(idBiblioteca, idRecurso).subscribe({
+      next: (estaGuardado: boolean) => {
+        this.guardado.set(estaGuardado);
+      },
+      error: (err: HttpErrorResponse) => console.error('Error verificando si está guardado', err)
     });
   }
 
