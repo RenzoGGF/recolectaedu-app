@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
@@ -270,6 +270,15 @@ export class NavbarUserComponent {
     this.router.navigate(['/profile']);
   }
 
+  userName = computed(() => {
+    const auth = this.authService.authState();
+    return auth?.name || '';
+  });
+
+  isAuthenticated(): boolean {
+    return this.authService.isAuthenticated();
+  }
+  
   logout(): void {
     this.menuOpen = false;
     this.authService.logout(); // navega a /auth/login

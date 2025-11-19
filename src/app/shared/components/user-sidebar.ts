@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
@@ -16,7 +16,7 @@ import { faUser, faPlus } from '@fortawesome/free-solid-svg-icons';
       <div class="profile-section">
         <div class="profile-info">
           <fa-icon [icon]="iconUser" class="profile-icon"></fa-icon>
-          <span class="user-name">{{ userName }}</span>
+          <span class="user-name">{{ userName() }}</span>
         </div>
       </div>
 
@@ -170,7 +170,13 @@ export class UserSidebar {
   iconUser = faUser;
   iconPlus = faPlus;
 
-  get userName(): string {
-    return this.authService.getUserName() || 'Usuario';
-  }
+  userName = computed(() => {
+    const auth = this.authService.authState();
+    return auth?.name || 'Usuario';
+  });
+
+  userUniversity = computed(() => {
+    const auth = this.authService.authState();
+    return auth?.university || '';
+  });
 }
