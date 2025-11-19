@@ -5,6 +5,7 @@ import { environment } from '../../../environments/environment';
 import { Aporte, RespuestaPagina, AportesParams } from '../models/aporte.model';
 import { HttpParams } from '@angular/common/http';
 import { UsuarioStats } from '../models/usuario-stats.model';
+import { UserProfile } from '../models/user-profile.model';
 
 
 @Injectable({
@@ -28,6 +29,10 @@ export class UsuarioService {
   // GET - Obtener por ID
   getById(id: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/id`);
+  }
+
+    getCurrentProfile(): Observable<UserProfile> {
+    return this.http.get<UserProfile>(`${this.apiUrl}/me`);
   }
 
   // POST - Crear
