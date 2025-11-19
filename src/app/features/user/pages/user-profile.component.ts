@@ -1,12 +1,10 @@
-// src/app/features/user/pages/user-profile.component.ts
-// REEMPLAZAR TODO EL ARCHIVO:
-
 import { Component, computed, signal, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { UsuarioService } from '../../../core/services/usuario.service';
 import { UsuarioStats } from '../../../core/models/usuario-stats.model';
+import { UserProfile } from '../../../core/models/user-profile.model';
 
 @Component({
   selector: 'app-user-profile-page',
@@ -521,9 +519,30 @@ export class UserProfilePageComponent implements OnInit {
   loading = signal(false);
   errorMessage = signal<string | null>(null);
 
+    // signals para el perfil
+  profile = signal<UserProfile | null>(null);
+  profileLoading = signal(false);
+  profileError = signal<string | null>(null);
+
   // Computed
-  userName = computed(() => this.authService.getUserName());
-  userUniversity = computed(() => this.authService.getUserUniversity());
+  userName = computed(() => {
+    const p = this.profile();
+    if (p?.profile) {
+      const nombre = p.profile.nombre ?? '';
+      const apellidos = p.profile.apellidos ?? '';
+      const parts = [nombre, apellidos].filter(Boolean);
+      if (parts.length) {
+        return parts.join(' ');
+      }
+    }
+    // fallback
+    return this.authService.getUserName();
+  });
+
+  userUniversity = computed(() => {
+    const p = this.profile();
+    return p?.profile?.universidad ?? this.authService.getUserUniversity();
+  });
 
   ngOnInit(): void {
     // Verificar autenticación
@@ -533,6 +552,7 @@ export class UserProfilePageComponent implements OnInit {
     }
 
     this.loadStats();
+    this.loadProfile();
   }
 
   loadStats(): void {
@@ -556,6 +576,24 @@ export class UserProfilePageComponent implements OnInit {
         console.error('❌ Error al cargar estadísticas:', error);
         this.errorMessage.set('Error al cargar las estadísticas. Intenta nuevamente.');
         this.loading.set(false);
+      }
+    });
+  }
+
+    private loadProfile(): void {
+    this.profileLoading.set(true);
+    this.profileError.set(null);
+
+    this.usuarioService.getCurrentProfile().subscribe({
+      next: (data: UserProfile) => {
+        this.profile.set(data);
+        this.profileLoading.set(false);
+        console.log('✅ Perfil cargado:', data);
+      },
+      error: (error) => {
+        console.error('❌ Error al cargar el perfil:', error);
+        this.profileError.set('Error al cargar la información del perfil.');
+        this.profileLoading.set(false);
       }
     });
   }
