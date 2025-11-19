@@ -9,6 +9,8 @@ import {
   AbstractControl
 } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
+import {BibliotecaService} from '../../../core/services/biblioteca.service';
+import {HttpErrorResponse} from '@angular/common/http';
 
 @Component({
   selector: 'app-register',
@@ -302,7 +304,8 @@ export class RegisterComponent {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private bibliotecaService: BibliotecaService
   ) {
     this.form = this.fb.group({
       nombres: ['', [Validators.required]],
@@ -357,11 +360,21 @@ export class RegisterComponent {
 
     this.authService.register(payload).subscribe({
       next: () => {
-        this.loading.set(false);
-        // luego de registrar, lo mando al base
-        this.router.navigate(['/']);
+        // Crear biblioteca automáticamente para el nuevo usuario
+        this.bibliotecaService.crearBiblioteca().subscribe({
+          next: () => {
+            this.loading.set(false);
+            this.router.navigate(['/']);
+          },
+          error: (err: HttpErrorResponse) => {
+            console.error('⚠️ Error al crear biblioteca (registro exitoso):', err);
+            // Igual se permite
+            this.loading.set(false);
+            this.router.navigate(['/']);
+          }
+        });
       },
-      error: (err) => {
+      error: (err: HttpErrorResponse) => {
         this.loading.set(false);
         console.error('❌ Error al registrar:', err);
         this.serverError.set('Ocurrió un error al crear la cuenta.');

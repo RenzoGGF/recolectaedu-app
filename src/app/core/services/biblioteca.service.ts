@@ -35,4 +35,8 @@ export class BibliotecaService {
       map(response => response.guardado)
     );
   }
+
+  crearBiblioteca(): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/usuarios/biblioteca`, {});
+  }
 }
