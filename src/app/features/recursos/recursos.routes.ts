@@ -10,14 +10,20 @@ export const RECURSOS_ROUTES: Routes = [
     loadComponent: () =>
       import('./pages/publicar-recurso/publicar-recurso.component')
         .then(m => m.PublicarRecursoComponent),
-     canActivate: [authGuard] 
+    canActivate: [authGuard]
+  },
+  {
+    path: 'editar/:id',
+    loadComponent: () =>
+      import('./pages/publicar-recurso/publicar-recurso.component')
+        .then(m => m.PublicarRecursoComponent),
   },
   {
     path: 'mis-aportes',
     loadComponent: () =>
       import('./pages/historial-aportes/historial-aportes.component')
         .then(m => m.HistorialAportesComponent),
-    canActivate: [authGuard] 
+    canActivate: [authGuard]
   },
   {
     path: ':id',

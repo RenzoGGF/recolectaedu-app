@@ -85,6 +85,18 @@ export class ResourceService {
     return this.http.post<Resource>(this.resourcesUrl, formData);
   }
 
+  updateResourceFile(id: number, archivo: File, metadata: RecursoArchivoCreateRequest): Observable<Resource> {
+    const formData = new FormData();
+    formData.append('archivo', archivo);
+
+    const metadataBlob = new Blob([JSON.stringify(metadata)], {
+      type: 'application/json'
+    });
+    formData.append('metadata', metadataBlob);
+
+    return this.http.put<Resource>(`${this.resourcesUrl}/${id}`, formData);
+  }
+
   /**
    * Validar archivo antes de subirlo
    */
@@ -117,7 +129,7 @@ export class ResourceService {
    * Actualizar recurso
    * PUT /api/v1/recursos/{id}
    */
-  updateResource(id: number, data: RecursoCreateRequest): Observable<Resource> {
+  updateResourceJson(id: number, data: RecursoCreateRequest): Observable<Resource> {
     return this.http.put<Resource>(`${this.resourcesUrl}/${id}`, data);
   }
 
@@ -135,5 +147,11 @@ export class ResourceService {
    */
   getResourceById(id: number): Observable<Resource> {
     return this.http.get<Resource>(`${this.baseUrlRecursos}/${id}`);
+  }
+
+  getResourceFile(id: number): Observable<Blob> {
+    return this.http.get(`${this.resourcesUrl}/${id}/archivo`, {
+      responseType: 'blob'
+    });
   }
 }

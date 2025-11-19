@@ -83,6 +83,10 @@ export class ResourceDetailComponent implements OnInit {
       next: (res: Resource) => {
         this.recurso.set(res);
 
+        if (this.idBiblioteca) {
+          this.verificarSiEstaGuardado(this.idBiblioteca, res.id_recurso);
+        }
+
         // Llamada extra para completar info del curso
         this.courseService.getCursoById(res.id_curso).subscribe({
           next: (curso) => {
@@ -117,11 +121,25 @@ export class ResourceDetailComponent implements OnInit {
     this.bibliotecaService.obtenerBibliotecaUsuario().subscribe({
       next: (biblioteca: BibliotecaResponse) => {
         this.idBiblioteca = biblioteca.id_biblioteca;
+
+        const recurso = this.recurso();
+        if (recurso) {
+          this.verificarSiEstaGuardado(biblioteca.id_biblioteca, recurso.id_recurso);
+        }
       },
       error: (err: HttpErrorResponse) => {
         console.error(err);
         this.idBiblioteca = null;
       }
+    });
+  }
+
+  private verificarSiEstaGuardado(idBiblioteca: number, idRecurso: number): void {
+    this.bibliotecaService.verificarRecursoGuardado(idBiblioteca, idRecurso).subscribe({
+      next: (estaGuardado: boolean) => {
+        this.guardado.set(estaGuardado);
+      },
+      error: (err: HttpErrorResponse) => console.error('Error verificando si está guardado', err)
     });
   }
 
@@ -217,6 +235,39 @@ export class ResourceDetailComponent implements OnInit {
 
   esArchivo(): boolean {
     return this.recurso()?.formato === 'ARCHIVO';
+  }
+
+  descargarArchivo(): void {
+    const recurso = this.recurso();
+    if (!recurso) return;
+
+    this.loading.set(true);
+
+    this.resourceService.getResourceFile(recurso.id_recurso).subscribe({
+      next: (blob: Blob) => {
+        // Crear una URL temporal para el blob
+        const url = window.URL.createObjectURL(blob);
+
+        // Crear un elemento <a> invisible
+        const link = document.createElement('a');
+        link.href = url;
+
+        // Usar el contenido como nombre de archivo o un default
+        link.download = recurso.contenido || `recurso-${recurso.id_recurso}`;
+
+        // Simular clic
+        link.click();
+
+        // Limpiar
+        window.URL.revokeObjectURL(url);
+        this.loading.set(false);
+      },
+      error: (err: HttpErrorResponse) => {
+        console.error('Error descargando archivo:', err);
+        alert('No se pudo descargar el archivo. Inténtalo más tarde.');
+        this.loading.set(false);
+      }
+    });
   }
 
   get contenidoCtrl() {

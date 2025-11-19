@@ -46,7 +46,16 @@
             </div>
           } @else if (esArchivo()) {
             <div class="resource-content-file">
-              <p>Archivo adjunto</p>
+              <div class="file-icon">📄</div>
+              <div class="file-details">
+                <p class="file-name">{{ recurso()!.contenido }}</p>
+                <button
+                  class="btn-download"
+                  (click)="descargarArchivo()"
+                  [disabled]="loading()">
+                  📥 Descargar Archivo
+                </button>
+              </div>
             </div>
           }
         </div>
