@@ -98,19 +98,19 @@ import { catchError, of, tap } from 'rxjs';
         <p>¿Te interesa conocer al equipo detrás del desarrollo?</p>
         <div class="team-grid">
           <div class="team-member">
-            <img src="team-carlos.png" alt="Carlos Molina">
+            <img src="team-carlos.PNG" alt="Carlos Molina">
             <strong>Carlos Alejandro<br>Molina Huatuco</strong>
           </div>
           <div class="team-member">
-            <img src="team-sebastian.png" alt="Sebastián Luna">
+            <img src="team-sebastian.PNG" alt="Sebastián Luna">
             <strong>Sebastián Rodrigo<br>Luna Centeno</strong>
           </div>
           <div class="team-member">
-            <img src="team-renzo.png" alt="Renzo Gutierrez">
+            <img src="team-renzo.PNG" alt="Renzo Gutierrez">
             <strong>Renzo Gabriel<br>Gutierrez Fernandez</strong>
           </div>
           <div class="team-member">
-            <img src="team-eduardo.png" alt="Eduardo Bravo">
+            <img src="team-eduardo.PNG" alt="Eduardo Bravo">
             <strong>Eduardo Fernando<br>Bravo Lévano</strong>
           </div>
         </div>
@@ -393,6 +393,7 @@ import { catchError, of, tap } from 'rxjs';
       margin-bottom: 20px;
     }
     .team-member strong {
+      display: block;
       font-size: 1.2rem;
       font-weight: 700;
       line-height: 1.4;
