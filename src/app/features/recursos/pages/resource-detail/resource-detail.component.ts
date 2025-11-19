@@ -219,6 +219,39 @@ export class ResourceDetailComponent implements OnInit {
     return this.recurso()?.formato === 'ARCHIVO';
   }
 
+  descargarArchivo(): void {
+    const recurso = this.recurso();
+    if (!recurso) return;
+
+    this.loading.set(true);
+
+    this.resourceService.getResourceFile(recurso.id_recurso).subscribe({
+      next: (blob: Blob) => {
+        // Crear una URL temporal para el blob
+        const url = window.URL.createObjectURL(blob);
+
+        // Crear un elemento <a> invisible
+        const link = document.createElement('a');
+        link.href = url;
+
+        // Usar el contenido como nombre de archivo o un default
+        link.download = recurso.contenido || `recurso-${recurso.id_recurso}`;
+
+        // Simular clic
+        link.click();
+
+        // Limpiar
+        window.URL.revokeObjectURL(url);
+        this.loading.set(false);
+      },
+      error: (err: HttpErrorResponse) => {
+        console.error('Error descargando archivo:', err);
+        alert('No se pudo descargar el archivo. Inténtalo más tarde.');
+        this.loading.set(false);
+      }
+    });
+  }
+
   get contenidoCtrl() {
     return this.resenaForm.get('contenido');
   }

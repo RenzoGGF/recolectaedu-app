@@ -4,11 +4,11 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router'; 
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { UsuarioService } from '../../../../core/services/usuario.service';
 import { AuthService } from '../../../../core/services/auth.service';
-import { 
-  Aporte, 
+import {
+  Aporte,
   RespuestaPagina,
   TIPOS_RECURSO_FILTRO,
   ORDENAMIENTO_OPCIONES,
@@ -16,11 +16,12 @@ import {
 } from '../../../../core/models/aporte.model';
 import { HttpErrorResponse } from '@angular/common/http';
 import { UsuarioStats } from '../../../../core/models/usuario-stats.model';
+import {ResourceService} from '../../../../core/services/resource.service';
 
 @Component({
   selector: 'app-historial-aportes',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink], 
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './historial-aportes.component.html',
   styleUrl: './historial-aportes.component.css'
 })
@@ -30,41 +31,42 @@ export class HistorialAportesComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly resourceService = inject(ResourceService);
 
   // ⭐ Signals para estado
   aportes = signal<Aporte[]>([]);
   loading = signal(false);
   errorMessage = signal<string | null>(null);
-  userStats = signal<UsuarioStats | null>(null); 
-  
+  userStats = signal<UsuarioStats | null>(null);
+
   // Paginación
   currentPage = signal(0);
   pageSize = signal(10);
   totalElements = signal(0);
   totalPages = signal(0);
   isLastPage = signal(false);
-  
+
   // Filtros
   tipoFiltro = signal<string>('');
   ordenamiento = signal<string>('creado_el,desc');
-  
+
   // Opciones para dropdowns
   tiposRecurso = TIPOS_RECURSO_FILTRO;
   opcionesOrdenamiento = ORDENAMIENTO_OPCIONES;
-  
+
   // Usuario actual
   currentUserId = this.authService.getUserId() || 1;
-  
+
   // Computed
   hasAportes = computed(() => this.aportes().length > 0);
   isEmpty = computed(() => !this.loading() && this.aportes().length === 0);
-  
+
   // ⭐ Helpers para template
   getTipoIniciales = getTipoIniciales;
 
   ngOnInit(): void {
     this.loadAportes();
-    this.loadUserStats(); // 
+    this.loadUserStats(); //
   }
 
   loadAportes(): void {
@@ -91,7 +93,7 @@ export class HistorialAportesComponent implements OnInit {
       },
       error: (error: HttpErrorResponse) => {
         console.error('Error al cargar aportes:', error);
-        
+
         if (error.status === 500) {
           this.errorMessage.set('Error del servidor. Por favor, contacta al equipo de backend.');
         } else if (error.status === 404) {
@@ -99,7 +101,7 @@ export class HistorialAportesComponent implements OnInit {
         } else {
           this.errorMessage.set('Error al cargar tus aportes. Intenta nuevamente.');
         }
-        
+
         this.loading.set(false);
       }
     });
@@ -177,7 +179,28 @@ export class HistorialAportesComponent implements OnInit {
 
   eliminarRecurso(id: number): void {
     console.log('Eliminar recurso:', id);
-    // TODO: Implementar lógica de eliminación
+    if (!confirm('¿Estás seguro de que deseas eliminar este recurso? Esta acción no se puede deshacer.')) {
+      return;
+    }
+
+    // No ponemos loading
+    // this.loading.set(true);
+
+    this.resourceService.deleteResource(id).subscribe({
+      next: () => {
+        // Actualizar la lista localmente eliminando el item
+        this.aportes.update(currentAportes =>
+          currentAportes.filter(aporte => aporte.id !== id)
+        );
+
+        // Actualizar conteo
+        this.totalElements.update(total => total - 1);
+      },
+      error: (error: HttpErrorResponse) => {
+        console.error('Error al eliminar:', error);
+        alert('Ocurrió un error al intentar eliminar el recurso.');
+      }
+    });
   }
 
   irASubirRecurso(): void {

@@ -148,4 +148,10 @@ export class ResourceService {
   getResourceById(id: number): Observable<Resource> {
     return this.http.get<Resource>(`${this.baseUrlRecursos}/${id}`);
   }
+
+  getResourceFile(id: number): Observable<Blob> {
+    return this.http.get(`${this.resourcesUrl}/${id}/archivo`, {
+      responseType: 'blob'
+    });
+  }
 }
