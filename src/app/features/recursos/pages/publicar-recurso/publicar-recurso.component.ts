@@ -156,7 +156,7 @@ export class PublicarRecursoComponent implements OnInit {
 
   // ==================== PASO 3: Formulario de Metadatos ====================
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     // ⭐ DEBUGGING: Ver estado del formulario
     console.log('=== DEBUGGING FORMULARIO ===');
     console.log('Formulario válido:', this.recursoForm.valid);
@@ -193,7 +193,7 @@ export class PublicarRecursoComponent implements OnInit {
     this.errorMessage.set(null);
     this.successMessage.set(null);
 
-    const id_usuario = this.authService.getUserId();
+    const id_usuario = await this.authService.getUserId();
 
     if (!id_usuario) {
       this.errorMessage.set('No se pudo obtener el ID del usuario.')
@@ -201,7 +201,7 @@ export class PublicarRecursoComponent implements OnInit {
       return;
     }
 
-    // Preparar datos base
+    // Preparar datos base    
     const formValue = this.recursoForm.value;
     const baseData = {
       id_usuario: id_usuario,
