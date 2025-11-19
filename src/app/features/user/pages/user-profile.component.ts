@@ -555,8 +555,8 @@ export class UserProfilePageComponent implements OnInit {
     this.loadProfile();
   }
 
-  loadStats(): void {
-    const userId = this.authService.getUserId();
+  async loadStats(): Promise<void> { 
+    const userId = await this.authService.getUserId();
     
     if (!userId) {
       this.errorMessage.set('No se pudo obtener el ID del usuario.');
