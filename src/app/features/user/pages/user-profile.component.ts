@@ -57,7 +57,7 @@ import { UserProfile } from '../../../core/models/user-profile.model';
               <div class="avatar-circle">
                 <span class="avatar-icon">👤</span>
               </div>
-              <button type="button" class="btn-edit" disabled title="Funcionalidad en desarrollo">
+              <button type="button" class="btn-edit" [routerLink]="['/profile/edit']">
                 Editar Perfil
               </button>
             </div>

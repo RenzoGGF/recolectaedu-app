@@ -55,6 +55,20 @@ export class UsuarioService {
     );
   }
 
+  updateProfile(
+    idUsuario: number,
+    payload: {
+      nombre: string;
+      apellidos: string;
+      universidad: string | null;
+      carrera: string | null;
+      ciclo: number | null;
+    }
+  ): Observable<UserProfile> {
+    return this.http.put<UserProfile>(`${this.apiUrl}/${idUsuario}/perfil`, payload);
+  }
+
+
   // DELETE - Eliminar
   delete(id: number): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}/id`).pipe(
@@ -62,6 +76,10 @@ export class UsuarioService {
         this._items.update(current => current.filter(item => item.id !== id));
       })
     );
+  }
+
+  deleteCurrentUser(): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/me`);
   }
 
       /**
