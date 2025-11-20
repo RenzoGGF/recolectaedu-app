@@ -35,7 +35,9 @@ import { faThumbsUp } from '@fortawesome/free-solid-svg-icons';
 
             <div class="resource-content">
 
-              <h3 class="resource-title">{{ resource.titulo }}</h3>
+              <h3 class="resource-title">
+                <a [routerLink]="['/recursos', resource.id_recurso]"> {{ resource.titulo }} </a>
+              </h3>
 
               <div class="course-uni-line">
 
@@ -137,6 +139,16 @@ import { faThumbsUp } from '@fortawesome/free-solid-svg-icons';
       font-weight: 700;
       color: #0D8EFF;
       margin: 0 0 5px 0;
+    }
+
+    .resource-title a {
+      text-decoration: none;
+      color: inherit;
+      transition: text-decoration 0.2s ease;
+    }
+
+    .resource-title a:hover {
+      text-decoration: underline;
     }
 
     .course-uni-line {
