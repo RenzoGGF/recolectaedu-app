@@ -86,7 +86,7 @@ import { catchError, of, tap } from 'rxjs';
         <a [routerLink]="['/foro']" class="btn btn-forum">¡ENTRA AL FORO!</a>
         <h3>¡Comienza a subir recursos para ayudar a la comunidad!</h3>
         <p>Necesitas tener una cuenta para subir recursos</p>
-        <a [routerLink]="['/upload']" class="btn btn-primary-blue">
+        <a [routerLink]="['/recursos/publicar']" class="btn btn-primary-blue">
           + SUBIR UN RECURSO
         </a>
       </div>
