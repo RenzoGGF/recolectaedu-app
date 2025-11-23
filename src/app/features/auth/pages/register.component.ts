@@ -48,7 +48,7 @@ import {HttpErrorResponse} from '@angular/common/http';
           <div class="field">
             <label for="universidad">Institución educativa</label>
             <select id="universidad" formControlName="universidad">
-              <option value="" disabled selected>Universidad</option>
+              <option value="" disabled>Universidad</option>
               <option *ngFor="let uni of universidades" [value]="uni">
                 {{ uni }}
               </option>
@@ -58,8 +58,8 @@ import {HttpErrorResponse} from '@angular/common/http';
           <div class="field">
             <label for="carrera">Carrera</label>
             <select id="carrera" formControlName="carrera">
-              <option value="" disabled selected>Carrera</option>
-              <option *ngFor="let car of carreras" [value]="car">
+              <option value="" disabled> Carrera </option>
+              <option *ngFor="let car of carrerasDisponibles" [value]="car">
                 {{ car }}
               </option>
             </select>
@@ -68,11 +68,14 @@ import {HttpErrorResponse} from '@angular/common/http';
           <div class="field">
             <label for="ciclo">Ciclo</label>
             <select id="ciclo" formControlName="ciclo">
-              <option value="" disabled selected>Ciclo</option>
-              <option *ngFor="let c of ciclos" [value]="c">{{ c }}</option>
+              <option value="" disabled>Ciclo</option>
+              <option *ngFor="let c of ciclos" [value]="c">
+                {{ c }}
+              </option>
             </select>
           </div>
         </div>
+
 
         <!-- Correo -->
         <div class="row one-col">
@@ -279,21 +282,93 @@ import {HttpErrorResponse} from '@angular/common/http';
 })
 export class RegisterComponent {
   universidades: string[] = [
-    'PUCP',
-    'UNMSM',
-    'UNI',
-    'UPC',
-    'UTEC',
-    'USIL'
+    'Universidad Nacional de Ingeniería (UNI)',
+    'Universidad Nacional Mayor de San Marcos (UNMSM)',
+    'Universidad Nacional Federico Villarreal (UNFV)',
+    'Pontificia Universidad Católica del Perú (PUCP)',
+    'Universidad de Lima (ULima)',
+    'Universidad Peruana de Ciencias Aplicadas (UPC)',
+    'Universidad de Ingeniería y Tecnología (UTEC)',
+    'Universidad Tecnológica del Perú (UTP)'
   ];
 
-  carreras: string[] = [
-    'Ingeniería de Sistemas',
-    'Ingeniería Informática',
-    'Ingeniería Industrial',
-    'Derecho',
-    'Administración'
-  ];
+  carrerasPorUniversidad: Record<string, string[]> = {
+    'Universidad Nacional de Ingeniería (UNI)': [
+      'Ingeniería de Sistemas',
+      'Ingeniería de Computación y Sistemas',
+      'Ingeniería Civil',
+      'Ingeniería Mecánica',
+      'Ingeniería Eléctrica',
+      'Ingeniería Electrónica',
+      'Ingeniería de Minas',
+      'Ingeniería Metalúrgica',
+      'Ingeniería Ambiental',
+      'Ciencias de la Computación'
+    ],
+    'Universidad Nacional Mayor de San Marcos (UNMSM)': [
+      'Ingeniería de Sistemas',
+      'Ingeniería de Software',
+      'Ingeniería Electrónica',
+      'Ingeniería Industrial',
+      'Ingeniería Ambiental',
+      'Ingeniería de Telecomunicaciones',
+      'Ingeniería de Energía',
+      'Ciencias de la Computación'
+    ],
+    'Universidad Nacional Federico Villarreal (UNFV)': [
+      'Ingeniería de Sistemas',
+      'Ingeniería Civil',
+      'Ingeniería Industrial',
+      'Ingeniería de Transportes',
+      'Ingeniería Sanitaria'
+    ],
+    'Pontificia Universidad Católica del Perú (PUCP)': [
+      'Ciencias de la Computación',
+      'Ingeniería de las Telecomunicaciones',
+      'Ingeniería Mecatrónica',
+      'Ingeniería Civil',
+      'Ingeniería Industrial',
+      'Ingeniería Electrónica',
+      'Ingeniería de Energía',
+      'Ciencias de la Computación'
+    ],
+    'Universidad de Lima (ULima)': [
+      'Ingeniería de Sistemas',
+      'Ingeniería Industrial',
+      'Ingeniería Civil',
+      'Ingeniería de Gestión Empresarial'
+    ],
+    'Universidad Peruana de Ciencias Aplicadas (UPC)': [
+      'Ingeniería de Software',
+      'Ingeniería de Sistemas de Información',
+      'Ingeniería de Tecnologías de Información y Sistemas',
+      'Ingeniería Industrial',
+      'Ingeniería Civil',
+      'Ingeniería de Gestión Empresarial',
+      'Ingeniería Ambiental',
+      'Ciencias de la Computación'
+    ],
+    'Universidad de Ingeniería y Tecnología (UTEC)': [
+      'Ingeniería de la Energía',
+      'Ingeniería Ambiental',
+      'Ingeniería Mecatrónica',
+      'Ingeniería Civil',
+      'Ingeniería Química',
+      'Ingeniería de Computación',
+      'Ciencias de la Computación'
+    ],
+    'Universidad Tecnológica del Perú (UTP)': [
+      'Ingeniería de Sistemas',
+      'Ingeniería de Software',
+      'Ingeniería Industrial',
+      'Ingeniería Mecánica',
+      'Ingeniería Mecatrónica',
+      'Ingeniería de Seguridad Industrial y Minera',
+      'Ingeniería de Gestión Minera'
+    ]
+  };
+
+  carrerasDisponibles: string[] = [];
 
   ciclos: number[] = Array.from({ length: 10 }, (_, i) => i + 1);
 
@@ -317,9 +392,34 @@ export class RegisterComponent {
       password: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', [Validators.required]],
     }, {
-      // Validación de contraseñas iguales
       validators: this.passwordsMatchValidator
     });
+    // Lógica de dependencia Universidad > Carrera
+    const uniControl = this.form.get('universidad');
+    const carreraControl = this.form.get('carrera');
+
+    // Al inicio, deshabilitamos carrera
+    carreraControl?.disable({ emitEvent: false });
+
+    uniControl?.valueChanges.subscribe((uni) => {
+      if (!uni) {
+        // Si no hay universidad seleccionada, limpiamos y deshabilitamos carrera
+        this.carrerasDisponibles = [];
+        carreraControl?.reset('');
+        carreraControl?.disable({ emitEvent: false });
+      } else {
+        // Seteamos las carreras de esa universidad
+        this.carrerasDisponibles = this.carrerasPorUniversidad[uni] ?? [];
+        carreraControl?.reset('');
+      
+        if (this.carrerasDisponibles.length > 0) {
+          carreraControl?.enable({ emitEvent: false });
+        } else {
+          carreraControl?.disable({ emitEvent: false });
+        }
+      }
+  });
+
   }
 
   private passwordsMatchValidator(group: AbstractControl) {
