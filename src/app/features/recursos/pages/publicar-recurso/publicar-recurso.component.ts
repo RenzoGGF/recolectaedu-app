@@ -17,6 +17,63 @@ import {HttpErrorResponse} from '@angular/common/http';
 import {AuthService} from '../../../../core/services/auth.service';
 import {CourseService} from '../../../../core/services/course.service';
 
+// ==================== DATOS ACADÉMICOS LOCALES ====================
+interface AcademicStructure {
+  [universidad: string]: {
+    [carrera: string]: string[];
+  };
+}
+
+const ACADEMIC_DATA: AcademicStructure = {
+  'Universidad Peruana de Ciencias Aplicadas': {
+    'Ingeniería de Software': [
+      'Ciencias de la Computación',
+      'Matemática Básica'
+    ],
+    'Ciencias de la Computación': [
+      'Base de Datos',
+      'Ciencias de la Computación'
+    ]
+  },
+  'Universidad de Lima': {
+    'Ingeniería de Sistemas': [
+      'Cálculo I'
+    ]
+  },
+  'Universidad San Martín de Porres': {
+    'Ingeniería en Ciencias de Datos': [
+      'Estadística I'
+    ]
+  }
+};
+
+// Funciones helper
+function getAllUniversidades(): string[] {
+  return Object.keys(ACADEMIC_DATA).sort();
+}
+
+function getCarrerasByUniversidad(universidad: string): string[] {
+  const carreras = ACADEMIC_DATA[universidad];
+  return carreras ? Object.keys(carreras).sort() : [];
+}
+
+function getCursosByUniversidadYCarrera(universidad: string, carrera: string): string[] {
+  const carreras = ACADEMIC_DATA[universidad];
+  if (!carreras) return [];
+  
+  const cursos = carreras[carrera];
+  return cursos ? cursos.sort() : [];
+}
+
+function filterOptions(options: string[], query: string): string[] {
+  if (!query || query.length < 2) return [];
+  
+  const lowerQuery = query.toLowerCase();
+  return options
+    .filter(option => option.toLowerCase().includes(lowerQuery))
+    .slice(0, 5);
+}
+
 type TipoRecurso = 'ARCHIVO' | 'ENLACE' | 'TEXTO';
 
 @Component({
@@ -39,6 +96,20 @@ export class PublicarRecursoComponent implements OnInit {
   idRecurso = signal<number | null>(null);
   esEdicion = computed(() => this.idRecurso() !== null);
   nombreArchivoActual = signal<string | null>(null);
+
+  //  Signals para autocomplete
+  universidadesDisponibles = signal<string[]>([]);
+  carrerasDisponibles = signal<string[]>([]);
+  cursosDisponibles = signal<string[]>([]);
+  
+  universidadesFiltradas = signal<string[]>([]);
+  carrerasFiltradas = signal<string[]>([]);
+  cursosFiltrados = signal<string[]>([]);
+
+  showUniversidadDropdown = signal(false);
+  showCarreraDropdown = signal(false);
+  showCursoDropdown = signal(false);
+
   // Opciones para dropdowns
   periodosAcademicos = PERIODOS_ACADEMICOS;
   tiposRecurso = TIPOS_RECURSO;
@@ -97,8 +168,122 @@ export class PublicarRecursoComponent implements OnInit {
       this.idRecurso.set(+id);
       this.cargarDatosParaEditar(+id);
     }
+
+        //  Cargar universidades disponibles
+    this.universidadesDisponibles.set(getAllUniversidades());
+    console.log('✅ Universidades cargadas:', this.universidadesDisponibles().length);
+    
+    //  Escuchar cambios en universidad
+    this.recursoForm.get('universidad')?.valueChanges.subscribe(universidad => {
+      if (universidad && universidad.length > 0) {
+        const carreras = getCarrerasByUniversidad(universidad);
+        this.carrerasDisponibles.set(carreras);
+      } else {
+        this.carrerasDisponibles.set([]);
+        this.cursosDisponibles.set([]);
+      }
+      
+      this.recursoForm.patchValue({ carrera: '', nombreCurso: '' }, { emitEvent: false });
+    });
+    
+    //  Escuchar cambios en carrera
+    this.recursoForm.get('carrera')?.valueChanges.subscribe(carrera => {
+      const universidad = this.recursoForm.get('universidad')?.value;
+      
+      if (universidad && carrera && carrera.length > 0) {
+        const cursos = getCursosByUniversidadYCarrera(universidad, carrera);
+        this.cursosDisponibles.set(cursos);
+      } else {
+        this.cursosDisponibles.set([]);
+      }
+      
+      this.recursoForm.patchValue({ nombreCurso: '' }, { emitEvent: false });
+    });
   }
 
+
+    // ==================== MÉTODOS DE AUTOCOMPLETE ====================
+
+  onUniversidadInput(event: Event): void {
+    const input = (event.target as HTMLInputElement).value;
+    const filtered = filterOptions(this.universidadesDisponibles(), input);
+    this.universidadesFiltradas.set(filtered);
+    this.showUniversidadDropdown.set(filtered.length > 0);
+  }
+
+  onUniversidadFocus(): void {
+    const currentValue = this.recursoForm.get('universidad')?.value || '';
+    if (currentValue.length < 2) {
+      this.universidadesFiltradas.set(this.universidadesDisponibles().slice(0, 5));
+      this.showUniversidadDropdown.set(true);
+    } else {
+      this.onUniversidadInput({ target: { value: currentValue } } as any);
+    }
+  }
+
+  selectUniversidad(universidad: string): void {
+    this.recursoForm.patchValue({ universidad });
+    this.showUniversidadDropdown.set(false);
+    this.universidadesFiltradas.set([]);
+  }
+
+  onCarreraInput(event: Event): void {
+    const input = (event.target as HTMLInputElement).value;
+    const filtered = filterOptions(this.carrerasDisponibles(), input);
+    this.carrerasFiltradas.set(filtered);
+    this.showCarreraDropdown.set(filtered.length > 0);
+  }
+
+  onCarreraFocus(): void {
+    const currentValue = this.recursoForm.get('carrera')?.value || '';
+    if (currentValue.length < 2) {
+      this.carrerasFiltradas.set(this.carrerasDisponibles().slice(0, 5));
+      this.showCarreraDropdown.set(this.carrerasDisponibles().length > 0);
+    } else {
+      this.onCarreraInput({ target: { value: currentValue } } as any);
+    }
+  }
+
+  selectCarrera(carrera: string): void {
+    this.recursoForm.patchValue({ carrera });
+    this.showCarreraDropdown.set(false);
+    this.carrerasFiltradas.set([]);
+  }
+
+  onCursoInput(event: Event): void {
+    const input = (event.target as HTMLInputElement).value;
+    const filtered = filterOptions(this.cursosDisponibles(), input);
+    this.cursosFiltrados.set(filtered);
+    this.showCursoDropdown.set(filtered.length > 0);
+  }
+
+  onCursoFocus(): void {
+    const currentValue = this.recursoForm.get('nombreCurso')?.value || '';
+    if (currentValue.length < 2) {
+      this.cursosFiltrados.set(this.cursosDisponibles().slice(0, 5));
+      this.showCursoDropdown.set(this.cursosDisponibles().length > 0);
+    } else {
+      this.onCursoInput({ target: { value: currentValue } } as any);
+    }
+  }
+
+  selectCurso(curso: string): void {
+    this.recursoForm.patchValue({ nombreCurso: curso });
+    this.showCursoDropdown.set(false);
+    this.cursosFiltrados.set([]);
+  }
+
+  onBlur(field: 'universidad' | 'carrera' | 'curso'): void {
+    setTimeout(() => {
+      if (field === 'universidad') {
+        this.showUniversidadDropdown.set(false);
+      } else if (field === 'carrera') {
+        this.showCarreraDropdown.set(false);
+      } else if (field === 'curso') {
+        this.showCursoDropdown.set(false);
+      }
+    }, 200);
+  }
   // ==================== PASO 2: Subir Contenido ====================
 
   selectTipo(tipo: TipoRecurso): void {
