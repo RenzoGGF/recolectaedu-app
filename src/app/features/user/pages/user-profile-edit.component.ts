@@ -63,7 +63,7 @@ import { AuthService } from '../../../core/services/auth.service';
               <label for="carrera">Carrera</label>
               <select id="carrera" formControlName="carrera">
                 <option value="">Selecciona tu carrera</option>
-                <option *ngFor="let carrera of carreras" [value]="carrera">
+                <option *ngFor="let carrera of carrerasDisponibles" [value]="carrera">
                   {{ carrera }}
                 </option>
               </select>
@@ -303,16 +303,84 @@ export class UserProfileEditPageComponent implements OnInit {
     'Universidad Tecnológica del Perú (UTP)'
   ];
 
-  carreras: string[] = [
-    'Ingeniería de Sistemas',
-    'Ingeniería de Software',
-    'Ingeniería Informática',
-    'Ingeniería Civil',
-    'Ingeniería Industrial',
-    'Ingeniería Mecatrónica',
-    'Ingeniería Electrónica',
-    'Ingeniería Ambiental'
-  ];
+  carrerasPorUniversidad: Record<string, string[]> = {
+    'Universidad Nacional de Ingeniería (UNI)': [
+      'Ingeniería de Sistemas',
+      'Ingeniería de Computación y Sistemas',
+      'Ingeniería Civil',
+      'Ingeniería Industrial',
+      'Ingeniería Mecánica',
+      'Ingeniería Eléctrica',
+      'Ingeniería Electrónica',
+      'Ingeniería Ambiental',
+      'Ingeniería de Minas',
+      'Ingeniería Metalúrgica',
+      'Ciencias de la Computación'
+    ],
+    'Universidad Nacional Mayor de San Marcos (UNMSM)': [
+      'Ingeniería de Sistemas',
+      'Ingeniería de Software',
+      'Ingeniería Electrónica',
+      'Ingeniería Industrial',
+      'Ingeniería Ambiental',
+      'Ingeniería de Telecomunicaciones',
+      'Ingeniería de Energía',
+      'Ciencias de la Computación'
+    ],
+    'Universidad Nacional Federico Villarreal (UNFV)': [
+      'Ingeniería de Sistemas',
+      'Ingeniería Civil',
+      'Ingeniería Industrial',
+      'Ingeniería de Transportes',
+      'Ingeniería Sanitaria'
+    ],
+    'Pontificia Universidad Católica del Perú (PUCP)': [
+      'Ciencias de la Computación',
+      'Ingeniería de las Telecomunicaciones',
+      'Ingeniería Mecatrónica',
+      'Ingeniería Civil',
+      'Ingeniería Industrial',
+      'Ingeniería Electrónica',
+      'Ingeniería de Energía',
+      'Ciencias de la Computación'
+    ],
+    'Universidad de Lima (ULima)': [
+      'Ingeniería de Sistemas',
+      'Ingeniería Industrial',
+      'Ingeniería Civil',
+      'Ingeniería de Gestión Empresarial'
+    ],
+    'Universidad Peruana de Ciencias Aplicadas (UPC)': [
+      'Ingeniería de Software',
+      'Ingeniería de Sistemas de Información',
+      'Ingeniería de Tecnologías de Información y Sistemas',
+      'Ingeniería Industrial',
+      'Ingeniería Civil',
+      'Ingeniería de Gestión Empresarial',
+      'Ingeniería Ambiental',
+      'Ciencias de la Computación'
+    ],
+    'Universidad de Ingeniería y Tecnología (UTEC)': [
+      'Ingeniería de la Energía',
+      'Ingeniería Ambiental',
+      'Ingeniería Mecatrónica',
+      'Ingeniería Civil',
+      'Ingeniería Química',
+      'Ingeniería de Computación'
+    ],
+    'Universidad Tecnológica del Perú (UTP)': [
+      'Ingeniería de Sistemas',
+      'Ingeniería de Software',
+      'Ingeniería Industrial',
+      'Ingeniería Mecánica',
+      'Ingeniería Mecatrónica',
+      'Ingeniería de Seguridad Industrial y Minera',
+      'Ingeniería de Gestión Minera'
+    ]
+  };
+
+  // Carreras visibles según la universidad elegida
+  carrerasDisponibles: string[] = [];
 
   ciclos: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
@@ -329,19 +397,73 @@ export class UserProfileEditPageComponent implements OnInit {
       carrera: [''],
       ciclo: ['']
     });
+    // Lógica dependencia Universidad → Carrera
+    const uniControl = this.form.get('universidad');
+    const carreraControl = this.form.get('carrera');
+
+    // Al inicio, deshabilitamos carrera
+    carreraControl?.disable({ emitEvent: false });
+
+    uniControl?.valueChanges.subscribe((uni) => {
+      this.syncCarrerasForUniversidad(uni, /* resetCarrera */ true);
+    });
   }
+
+    private syncCarrerasForUniversidad(
+    uni: string | null | undefined,
+    resetCarrera: boolean
+  ): void {
+    const carreraControl = this.form.get('carrera');
+
+    if (!uni) {
+      this.carrerasDisponibles = [];
+      if (resetCarrera) {
+        carreraControl?.reset('');
+      }
+      carreraControl?.disable({ emitEvent: false });
+      return;
+    }
+
+    const lista = this.carrerasPorUniversidad[uni] ?? [];
+    this.carrerasDisponibles = lista;
+
+    if (lista.length > 0) {
+      carreraControl?.enable({ emitEvent: false });
+      if (resetCarrera) {
+        carreraControl?.reset('');
+      }
+    } else {
+      if (resetCarrera) {
+        carreraControl?.reset('');
+      }
+      carreraControl?.disable({ emitEvent: false });
+    }
+  }
+
 
   ngOnInit(): void {
     this.usuarioService.getCurrentProfile().subscribe({
       next: (profile: UserProfile) => {
         this.currentUserId = profile.id_usuario;
 
+        const universidad = profile.profile?.universidad ?? '';
+        const carrera = profile.profile?.carrera ?? '';
+        const ciclo = profile.profile?.ciclo ?? '';
+
+        // Primero seteamos universidad y ciclo
         this.form.patchValue({
           nombre: profile.profile?.nombre ?? '',
           apellidos: profile.profile?.apellidos ?? '',
-          universidad: profile.profile?.universidad ?? '',
-          carrera: profile.profile?.carrera ?? '',
-          ciclo: profile.profile?.ciclo ?? ''
+          universidad,
+          ciclo
+        });
+
+        // Sincroniza lista de carreras para esa universidad, sin resetear
+        this.syncCarrerasForUniversidad(universidad, /* resetCarrera */ false);
+
+        // Ahora seteamos carrera
+        this.form.patchValue({
+          carrera
         });
       },
       error: (error: unknown) => {
@@ -349,6 +471,7 @@ export class UserProfileEditPageComponent implements OnInit {
       }
     });
   }
+
 
   onSubmit(): void {
     if (this.form.invalid || !this.currentUserId) {
