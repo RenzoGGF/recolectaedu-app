@@ -285,61 +285,143 @@
           </div>
         }
 
-        <!-- Clasificación Académica -->
-        <div class="form-section">
-          <h3 class="form-section-title">Clasificación Académica</h3>
+          <!-- Clasificación Académica -->
+          <div class="form-section">
+            <h3 class="form-section-title">Clasificación Académica</h3>
 
-          <div class="form-group">
-            <label for="universidad" class="form-label">
-              Institución Educativa <span class="required">*</span>
-            </label>
-            <input
-              type="text"
-              id="universidad"
-              formControlName="universidad"
-              class="form-control"
-              [class.is-invalid]="hasError('universidad')"
-              placeholder="Buscar por nombre de institución educativa">
+            <!-- Universidad con Autocomplete -->
+            <div class="form-group autocomplete-wrapper">
+              <label for="universidad" class="form-label">
+                Institución Educativa <span class="required">*</span>
+              </label>
+              <input
+                type="text"
+                id="universidad"
+                formControlName="universidad"
+                class="form-control"
+                [class.is-invalid]="hasError('universidad')"
+                placeholder="Escribe para buscar: UPC, UNMSM..."
+                (input)="onUniversidadInput($event)"
+                (focus)="onUniversidadFocus()"
+                (blur)="onBlur('universidad')"
+                autocomplete="off">
 
-            @if (hasError('universidad')) {
-              <span class="error-message">{{ getErrorMessage('universidad') }}</span>
-            }
+              <!-- Dropdown de sugerencias -->
+              @if (showUniversidadDropdown()) {
+                <ul class="autocomplete-dropdown">
+                  @if (universidadesFiltradas().length === 0 && universidadesDisponibles().length > 0) {
+                    <li class="autocomplete-empty">
+                      No se encontraron coincidencias
+                    </li>
+                  }
+                  @for (universidad of universidadesFiltradas(); track universidad) {
+                    <li 
+                      class="autocomplete-item" 
+                      (mousedown)="selectUniversidad(universidad)">
+                      <span class="item-icon">🎓</span>
+                      <span class="item-text">{{ universidad }}</span>
+                    </li>
+                  }
+                </ul>
+              }
+
+              @if (hasError('universidad')) {
+                <span class="error-message">{{ getErrorMessage('universidad') }}</span>
+              }
+            </div>
+
+            <!-- Carrera con Autocomplete -->
+            <div class="form-group autocomplete-wrapper">
+              <label for="carrera" class="form-label">
+                Carrera <span class="required">*</span>
+              </label>
+              <input
+                type="text"
+                id="carrera"
+                formControlName="carrera"
+                class="form-control"
+                [class.is-invalid]="hasError('carrera')"
+                placeholder="Escribe para buscar: Ingeniería..."
+                (input)="onCarreraInput($event)"
+                (focus)="onCarreraFocus()"
+                (blur)="onBlur('carrera')"
+                autocomplete="off"
+                [disabled]="!recursoForm.get('universidad')?.value">
+
+              <!-- Dropdown de sugerencias -->
+              @if (showCarreraDropdown()) {
+                <ul class="autocomplete-dropdown">
+                  @if (carrerasFiltradas().length === 0 && carrerasDisponibles().length > 0) {
+                    <li class="autocomplete-empty">
+                      No se encontraron coincidencias
+                    </li>
+                  }
+                  @for (carrera of carrerasFiltradas(); track carrera) {
+                    <li 
+                      class="autocomplete-item" 
+                      (mousedown)="selectCarrera(carrera)">
+                      <span class="item-icon">📚</span>
+                      <span class="item-text">{{ carrera }}</span>
+                    </li>
+                  }
+                </ul>
+              }
+
+              @if (hasError('carrera')) {
+                <span class="error-message">{{ getErrorMessage('carrera') }}</span>
+              }
+              
+              @if (!recursoForm.get('universidad')?.value) {
+                <span class="help-text">Primero selecciona una universidad</span>
+              }
+            </div>
+
+            <!-- Curso con Autocomplete -->
+            <div class="form-group autocomplete-wrapper">
+              <label for="nombreCurso" class="form-label">
+                Asignatura <span class="required">*</span>
+              </label>
+              <input
+                type="text"
+                id="nombreCurso"
+                formControlName="nombreCurso"
+                class="form-control"
+                [class.is-invalid]="hasError('nombreCurso')"
+                placeholder="Escribe para buscar: Cálculo, Base de Datos..."
+                (input)="onCursoInput($event)"
+                (focus)="onCursoFocus()"
+                (blur)="onBlur('curso')"
+                autocomplete="off"
+                [disabled]="!recursoForm.get('carrera')?.value">
+
+              <!-- Dropdown de sugerencias -->
+              @if (showCursoDropdown()) {
+                <ul class="autocomplete-dropdown">
+                  @if (cursosFiltrados().length === 0 && cursosDisponibles().length > 0) {
+                    <li class="autocomplete-empty">
+                      No se encontraron coincidencias
+                    </li>
+                  }
+                  @for (curso of cursosFiltrados(); track curso) {
+                    <li 
+                      class="autocomplete-item" 
+                      (mousedown)="selectCurso(curso)">
+                      <span class="item-icon">📖</span>
+                      <span class="item-text">{{ curso }}</span>
+                    </li>
+                  }
+                </ul>
+              }
+
+              @if (hasError('nombreCurso')) {
+                <span class="error-message">{{ getErrorMessage('nombreCurso') }}</span>
+              }
+              
+              @if (!recursoForm.get('carrera')?.value) {
+                <span class="help-text">Primero selecciona una carrera</span>
+              }
+            </div>
           </div>
-
-          <div class="form-group">
-            <label for="carrera" class="form-label">
-              Carrera <span class="required">*</span>
-            </label>
-            <input
-              type="text"
-              id="carrera"
-              formControlName="carrera"
-              class="form-control"
-              [class.is-invalid]="hasError('carrera')"
-              placeholder="Ej: Ingeniería de Software, Medicina, etc.">
-
-            @if (hasError('carrera')) {
-              <span class="error-message">{{ getErrorMessage('carrera') }}</span>
-            }
-          </div>
-
-          <div class="form-group">
-            <label for="nombreCurso" class="form-label">
-              Asignatura <span class="required">*</span>
-            </label>
-            <input
-              type="text"
-              id="nombreCurso"
-              formControlName="nombreCurso"
-              class="form-control"
-              [class.is-invalid]="hasError('nombreCurso')"
-              placeholder="Buscar por nombre de asignatura o código">
-
-            @if (hasError('nombreCurso')) {
-              <span class="error-message">{{ getErrorMessage('nombreCurso') }}</span>
-            }
-          </div>
-        </div>
 
         <!-- Información del Recurso -->
         <div class="form-section">
