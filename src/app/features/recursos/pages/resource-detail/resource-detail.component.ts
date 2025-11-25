@@ -1,17 +1,21 @@
-import {Component, computed, inject, OnInit, signal} from '@angular/core';
-import {ActivatedRoute} from '@angular/router';
-import {ResourceService} from '../../../../core/services/resource.service';
-import {BibliotecaService} from '../../../../core/services/biblioteca.service';
-import {AuthService} from '../../../../core/services/auth.service';
-import {Resource} from '../../../../core/models/resource.model';
-import {BibliotecaResponse} from '../../../../core/models/biblioteca.model';
-import {DatePipe} from '@angular/common';
-import {CourseService} from '../../../../core/services/course.service';
-import {Course} from '../../../../core/models/course.model';
-import {HttpErrorResponse} from '@angular/common/http';
-import {ResenaService} from '../../../../core/services/resena.service';
-import {ResenaCreateRequest, ResenaResponse} from '../../../../core/models/resena.model';
-import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import { Component, computed, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { ResourceService } from '../../../../core/services/resource.service';
+import { BibliotecaService } from '../../../../core/services/biblioteca.service';
+import { AuthService } from '../../../../core/services/auth.service';
+import { Resource } from '../../../../core/models/resource.model';
+import { BibliotecaResponse } from '../../../../core/models/biblioteca.model';
+import { DatePipe } from '@angular/common';
+import { CourseService } from '../../../../core/services/course.service';
+import { Course } from '../../../../core/models/course.model';
+import { HttpErrorResponse } from '@angular/common/http';
+import { ResenaService } from '../../../../core/services/resena.service';
+import { ResenaCreateRequest, ResenaResponse } from '../../../../core/models/resena.model';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { renderAsync } from 'docx-preview';
+
+type VisorFormato = 'PDF' | 'DOCX' | 'DOC';
 
 @Component({
   selector: 'app-resource-detail',
@@ -22,7 +26,7 @@ import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/
   templateUrl: './resource-detail.component.html',
   styleUrl: './resource-detail.component.css',
 })
-export class ResourceDetailComponent implements OnInit {
+export class ResourceDetailComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private resourceService = inject(ResourceService);
   private courseService = inject(CourseService);
@@ -31,11 +35,16 @@ export class ResourceDetailComponent implements OnInit {
   private resenaService = inject(ResenaService);
   private fb = inject(FormBuilder);
 
+  private sanitizer = inject(DomSanitizer);
+
   recurso = signal<Resource | null>(null);
   curso = signal<Course | null>(null);
 
   loading = signal(true);
   error = signal<string | null>(null);
+
+  loadingArchivo = signal(false);
+  errorVisor = signal<string | null>(null);
 
   guardando = signal(false);
   guardado = signal(false);
@@ -49,6 +58,14 @@ export class ResourceDetailComponent implements OnInit {
   enviandoResena = signal(false);
   errorResena = signal<string | null>(null);
   editandoVoto = signal<Record<number, boolean>>({})
+
+  mostrarVisor = signal(false);
+  tipoArchivo = signal<VisorFormato | null>(null);
+  pdfUrlSegura = signal<SafeResourceUrl | null>(null);
+
+  private blobUrl: string | null = null;
+
+  @ViewChild('docxContainer') docxContainer!: ElementRef<HTMLDivElement>;
 
   private idBiblioteca: number | null = null;
 
@@ -72,6 +89,12 @@ export class ResourceDetailComponent implements OnInit {
 
     if (this.isAuthenticated()) {
       this.cargarBibliotecaUsuario();
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.blobUrl) {
+      window.URL.revokeObjectURL(this.blobUrl);
     }
   }
 
@@ -109,7 +132,7 @@ export class ResourceDetailComponent implements OnInit {
           }
         });
       },
-      error: (err:HttpErrorResponse) => {
+      error: (err: HttpErrorResponse) => {
         console.error(err);
         this.error.set('No se pudo cargar el recurso.');
         this.loading.set(false);
@@ -237,35 +260,109 @@ export class ResourceDetailComponent implements OnInit {
     return this.recurso()?.formato === 'ARCHIVO';
   }
 
+  cerrarVisor(): void {
+    this.mostrarVisor.set(false);
+    this.tipoArchivo.set(null);
+    this.errorVisor.set(null);
+    if (this.blobUrl) {
+      window.URL.revokeObjectURL(this.blobUrl);
+      this.blobUrl = null;
+      this.pdfUrlSegura.set(null);
+    }
+  }
+
+  toggleVisor(): void {
+    if (this.mostrarVisor()) {
+      this.cerrarVisor();
+      return;
+    }
+
+    const recurso = this.recurso();
+    if (!recurso) return;
+
+    const nombreArchivo = recurso.contenido.toLowerCase();
+    let formatoDetectado: VisorFormato | 'OTRO' = 'OTRO';
+
+    if (nombreArchivo.endsWith('.pdf')) formatoDetectado = 'PDF';
+    else if (nombreArchivo.endsWith('.docx')) formatoDetectado = 'DOCX';
+    else if (nombreArchivo.endsWith('.doc')) formatoDetectado = 'DOC';
+
+    if (formatoDetectado === 'OTRO') {
+      alert('La vista previa solo está disponible para PDF y archivos Word (.docx).');
+      return;
+    }
+
+    this.tipoArchivo.set(formatoDetectado);
+    this.errorVisor.set(null);
+
+    this.loadingArchivo.set(true);
+    this.mostrarVisor.set(true);
+
+    this.resourceService.getResourceFile(recurso.id_recurso).subscribe({
+      next: (blobOriginal: Blob) => {
+        if (formatoDetectado === 'PDF') {
+          const pdfBlob = new Blob([blobOriginal], { type: 'application/pdf' });
+          this.blobUrl = window.URL.createObjectURL(pdfBlob);
+          this.pdfUrlSegura.set(this.sanitizer.bypassSecurityTrustResourceUrl(this.blobUrl));
+          this.loadingArchivo.set(false);
+        }
+        else if (formatoDetectado === 'DOCX' || formatoDetectado === 'DOC') {
+          const docxBlob = new Blob([blobOriginal], {
+            type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+          });
+
+          // Esperamos un ciclo para que el @if renderice el div
+          setTimeout(() => {
+            // Verificamos si existe el ViewChild
+            if (this.docxContainer && this.docxContainer.nativeElement) {
+              renderAsync(docxBlob, this.docxContainer.nativeElement)
+                .then(() => {
+                  console.log('DOCX renderizado correctamente');
+                  this.loadingArchivo.set(false);
+                })
+                .catch(err => {
+                  console.error('Error renderizando DOCX', err);
+                  this.errorVisor.set('No se pudo visualizar el documento. Intenta descargarlo.');
+                  this.loadingArchivo.set(false);
+                });
+            } else {
+              // CRÍTICO: Si no encuentra el contenedor, detener la carga
+              console.error('No se encontró el contenedor #docxContainer');
+              this.errorVisor.set('Error interno de visualización.');
+              this.loadingArchivo.set(false);
+            }
+          }, 100);
+        }
+      },
+      error: (err) => {
+        console.error('Error descargando blob', err);
+        this.errorVisor.set('Error de conexión al descargar el archivo.');
+        this.loadingArchivo.set(false);
+      }
+    });
+  }
+
+
   descargarArchivo(): void {
     const recurso = this.recurso();
     if (!recurso) return;
 
-    this.loading.set(true);
+    this.loadingArchivo.set(true);
 
     this.resourceService.getResourceFile(recurso.id_recurso).subscribe({
       next: (blob: Blob) => {
-        // Crear una URL temporal para el blob
         const url = window.URL.createObjectURL(blob);
-
-        // Crear un elemento <a> invisible
         const link = document.createElement('a');
         link.href = url;
-
-        // Usar el contenido como nombre de archivo o un default
         link.download = recurso.contenido || `recurso-${recurso.id_recurso}`;
-
-        // Simular clic
         link.click();
-
-        // Limpiar
         window.URL.revokeObjectURL(url);
-        this.loading.set(false);
+        this.loadingArchivo.set(false);
       },
       error: (err: HttpErrorResponse) => {
-        console.error('Error descargando archivo:', err);
-        alert('No se pudo descargar el archivo. Inténtalo más tarde.');
-        this.loading.set(false);
+        console.error('Error descargando:', err);
+        alert('No se pudo descargar el archivo.');
+        this.loadingArchivo.set(false);
       }
     });
   }
