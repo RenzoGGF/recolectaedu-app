@@ -1,6 +1,6 @@
 // src/app/core/services/resource.service.ts
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { RecursoValoradoResponse, Resource, SearchResourceParams } from '../models/resource.model';
@@ -149,9 +149,10 @@ export class ResourceService {
     return this.http.get<Resource>(`${this.baseUrlRecursos}/${id}`);
   }
 
-  getResourceFile(id: number): Observable<Blob> {
+  getResourceFile(id: number): Observable<HttpResponse<Blob>> {
     return this.http.get(`${this.resourcesUrl}/${id}/archivo`, {
-      responseType: 'blob'
+      responseType: 'blob',
+      observe: 'response'
     });
   }
 }

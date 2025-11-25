@@ -8,7 +8,7 @@ import { BibliotecaResponse } from '../../../../core/models/biblioteca.model';
 import { DatePipe } from '@angular/common';
 import { CourseService } from '../../../../core/services/course.service';
 import { Course } from '../../../../core/models/course.model';
-import { HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { ResenaService } from '../../../../core/services/resena.service';
 import { ResenaCreateRequest, ResenaResponse } from '../../../../core/models/resena.model';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -62,6 +62,18 @@ export class ResourceDetailComponent implements OnInit, OnDestroy {
   mostrarVisor = signal(false);
   tipoArchivo = signal<VisorFormato | null>(null);
   pdfUrlSegura = signal<SafeResourceUrl | null>(null);
+
+  nombreArchivoDisplay = computed(() => {
+    const r = this.recurso();
+    if (!r || !r.contenido) return '';
+    return this.cleanFilename(r.contenido);
+  });
+
+  usuarioYaReseno = computed(() => {
+    const user = this.authService.getUserName();
+    if (!user) return false;
+    return this.resenas().some(r => r.nombre_autor === user);
+  });
 
   private blobUrl: string | null = null;
 
@@ -299,7 +311,14 @@ export class ResourceDetailComponent implements OnInit, OnDestroy {
     this.mostrarVisor.set(true);
 
     this.resourceService.getResourceFile(recurso.id_recurso).subscribe({
-      next: (blobOriginal: Blob) => {
+      next: (response: HttpResponse<Blob>) => {
+        const blobOriginal = response.body;
+        if (!blobOriginal) {
+          this.errorVisor.set('El archivo está vacío.');
+          this.loadingArchivo.set(false);
+          return;
+        }
+
         if (formatoDetectado === 'PDF') {
           const pdfBlob = new Blob([blobOriginal], { type: 'application/pdf' });
           this.blobUrl = window.URL.createObjectURL(pdfBlob);
@@ -315,7 +334,21 @@ export class ResourceDetailComponent implements OnInit, OnDestroy {
           setTimeout(() => {
             // Verificamos si existe el ViewChild
             if (this.docxContainer && this.docxContainer.nativeElement) {
-              renderAsync(docxBlob, this.docxContainer.nativeElement)
+              const renderOptions = {
+                className: 'docx-wrapper', // Clase CSS para el documento renderizado
+                inWrapper: true, // Envuelve el contenido en un div
+                ignoreWidth: true, // Ignora el ancho de la página, se ajusta al contenedor
+                ignoreHeight: true, // Respeta la altura de la página
+                renderHeaders: false, // Renderiza encabezados
+                renderFooters: false, // Renderiza pies de página
+                renderFootnotes: false, // Renderiza notas al pie
+                renderEndnotes: false, // Renderiza notas finales
+                useBase64URL: false, // Usa URLs blob en lugar de base64
+                renderChanges: false, // No renderiza marcas de cambios/revisiones
+                debug: true // Modo debug (puedes activarlo para ver info en consola)
+              };
+
+              renderAsync(docxBlob, this.docxContainer.nativeElement, undefined, renderOptions)
                 .then(() => {
                   console.log('DOCX renderizado correctamente');
                   this.loadingArchivo.set(false);
@@ -350,11 +383,33 @@ export class ResourceDetailComponent implements OnInit, OnDestroy {
     this.loadingArchivo.set(true);
 
     this.resourceService.getResourceFile(recurso.id_recurso).subscribe({
-      next: (blob: Blob) => {
+      next: (response: HttpResponse<Blob>) => {
+        const blob = response.body;
+        if (!blob) {
+          alert('El archivo descargado está vacío.');
+          this.loadingArchivo.set(false);
+          return;
+        }
+
+        // Intentar obtener el nombre del archivo desde el header Content-Disposition
+        const contentDisposition = response.headers.get('content-disposition');
+        let filename = recurso.contenido || `recurso-${recurso.id_recurso}`;
+
+        if (contentDisposition) {
+          const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
+          if (matches != null && matches[1]) {
+            filename = matches[1].replace(/['"]/g, '');
+          }
+        }
+
+        // Limpiar prefijo de ID si existe (ej: "123_nombre.pdf" o "uuid_nombre.pdf")
+        // Aplicamos esto tanto si viene del header como si viene de recurso.contenido
+        filename = this.cleanFilename(filename);
+
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = recurso.contenido || `recurso-${recurso.id_recurso}`;
+        link.download = filename;
         link.click();
         window.URL.revokeObjectURL(url);
         this.loadingArchivo.set(false);
@@ -365,6 +420,15 @@ export class ResourceDetailComponent implements OnInit, OnDestroy {
         this.loadingArchivo.set(false);
       }
     });
+  }
+
+  private cleanFilename(filename: string): string {
+    // Buscamos un patrón de ID seguido de guion bajo al inicio
+    const prefixMatch = /^[a-zA-Z0-9-]{1,50}_/.exec(filename);
+    if (prefixMatch) {
+      return filename.substring(prefixMatch[0].length);
+    }
+    return filename;
   }
 
   get contenidoCtrl() {
