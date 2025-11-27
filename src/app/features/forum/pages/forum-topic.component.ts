@@ -7,7 +7,7 @@ import { catchError, of, tap } from 'rxjs';
 
 import { AuthService } from '../../../core/services/auth.service';
 import { ForumService } from '../../../core/services/forum.service';
-import { ForoTopic, ForoComment } from '../../../core/models/forum.model';
+import { ForoTopic, ForoComment, ForoCommentRequest } from '../../../core/models/forum.model';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 @Component({
@@ -49,27 +49,36 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
             placeholder="Escribe un comentario"
             rows="4">
           </textarea>
+
+          @if (commentError()) {
+            <p class="error-msg">{{ commentError() }}</p>
+          }
+
           <div class="comment-actions">
-            <button type="submit" class="btn btn-respond" [disabled]="commentForm.invalid">
-              RESPONDER
+            <button type="submit" class="btn btn-respond"
+                    [disabled]="commentForm.invalid || isPostingComment()">
+              {{ isPostingComment() ? 'ENVIANDO...' : 'RESPONDER' }}
             </button>
           </div>
         </form>
       </div>
 
       <div class="comments-section">
-        <h2>Comentarios</h2>
-        @for (comment of comments(); track comment.id) {
+        <h2>Comentarios ({{ comments().length }})</h2>
+
+        @for (comment of comments(); track comment.id_comentario) {
           <div class="comment-card">
             <div class="author-info">
               <div class="author-icon">
                 <fa-icon [icon]="iconUser"></fa-icon>
               </div>
               <span class="author-name">{{ comment.nombreAutor }} {{ comment.apellidoAutor }}</span>
-              <span class="topic-time">- {{ comment.tiempo }}</span>
+              <span class="topic-time">- {{ comment.creado_el | date:'short' }}</span>
             </div>
             <p class="topic-content">{{ comment.contenido }}</p>
           </div>
+        } @empty {
+          <p class="empty-comments">Sé el primero en comentar.</p>
         }
       </div>
 
@@ -205,7 +214,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
       margin-bottom: 15px;
     }
-    .empty-message {
+    .empty-message, .empty-comments {
       text-align: center;
       padding: 20px;
       color: #555;
@@ -223,6 +232,11 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
       font-weight: 700;
       z-index: 2000;
     }
+    .error-msg {
+      color: #c0392b;
+      font-size: 0.9rem;
+      margin-top: 10px;
+    }
   `]
 })
 export class ForumTopicComponent implements OnInit {
@@ -236,30 +250,26 @@ export class ForumTopicComponent implements OnInit {
   topic = signal<ForoTopic | null>(null);
   loadingMessage = signal('Cargando tema...');
   showToast = signal(false);
+
   comments = signal<ForoComment[]>([]);
+  isPostingComment = signal(false);
+  commentError = signal<string | null>(null);
+
   commentForm: FormGroup;
+  topicId: number | null = null;
 
   constructor() {
     this.commentForm = this.fb.group({
       contenido: ['', [Validators.required, Validators.minLength(5)]]
     });
-
-    this.comments.set([
-      {
-        id: 1,
-        nombreAutor: 'Usuario12',
-        apellidoAutor: '',
-        tiempo: 'hace 1 minutos',
-        contenido: '¡Es una pagina para encontrar documentos!'
-      }
-    ]);
   }
 
   ngOnInit() {
     this.route.params.subscribe(params => {
-      const topicId = +params['id'];
-      if (topicId) {
-        this.loadTopic(topicId);
+      this.topicId = +params['id'];
+      if (this.topicId) {
+        this.loadTopic(this.topicId);
+        this.loadComments(this.topicId);
       } else {
         this.loadingMessage.set('No se encontró el ID del tema.');
       }
@@ -288,9 +298,18 @@ export class ForumTopicComponent implements OnInit {
   }
 
 
+  loadComments(id: number) {
+    this.forumService.getCommentsByTopic(id).pipe(
+      tap(data => this.comments.set(data)),
+      catchError(err => {
+        console.error('Error cargando comentarios', err);
+        return of([]);
+      })
+    ).subscribe();
+  }
+
   isOwner(): boolean {
     const currentUserEmail = this.authService.authState()?.email;
-
     const topicAuthorEmail = this.topic()?.emailAutor;
 
     if (!currentUserEmail || !topicAuthorEmail) {
@@ -301,19 +320,32 @@ export class ForumTopicComponent implements OnInit {
   }
 
   onPostComment() {
-    if (this.commentForm.invalid) return;
+    if (this.commentForm.invalid || !this.topicId) return;
 
-    console.log('Comentario a enviar:', this.commentForm.value.contenido);
+    if (!this.authService.isAuthenticated()) {
+        this.commentError.set('Debes iniciar sesión para comentar.');
+        return;
+    }
 
-    const newComment: ForoComment = {
-      id: Math.random(),
-      nombreAutor: this.authService.authState()?.name || 'Tú',
-      apellidoAutor: '',
-      tiempo: 'ahora mismo',
-      contenido: this.commentForm.value.contenido
+    this.isPostingComment.set(true);
+    this.commentError.set(null);
+
+    const request: ForoCommentRequest = {
+      contenido: this.commentForm.value.contenido,
+      id_foro: this.topicId
     };
-    this.comments.update(current => [newComment, ...current]);
 
-    this.commentForm.reset();
+    this.forumService.createComment(request).subscribe({
+      next: (newComment) => {
+        this.comments.update(current => [...current, newComment]);
+        this.commentForm.reset();
+        this.isPostingComment.set(false);
+      },
+      error: (err) => {
+        console.error('Error publicando comentario:', err);
+        this.commentError.set('Error al publicar. Intenta de nuevo.');
+        this.isPostingComment.set(false);
+      }
+    });
   }
 }
