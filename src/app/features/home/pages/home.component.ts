@@ -172,14 +172,14 @@ import { catchError, of, tap } from 'rxjs';
     .container {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 60px 20px;
+      padding: 00px 10px;
       text-align: center;
     }
 
     .hero-section {
       background-color: #f8f7fB;
       padding-top: 40px;
-      padding-bottom: 60px;
+      padding-bottom: 10px;
       text-align: center;
     }
     .hero-section h1 {
@@ -207,12 +207,13 @@ import { catchError, of, tap } from 'rxjs';
       display: flex;
       align-items: center;
       background-color: #fff;
-      border: 1px solid #E7E7EE;
+      border: 1px solid #000000ff;
       border-radius: 50px;
       padding: 10px 20px;
       height: 65px;
       width: 100%;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+
     }
     .search-main-input {
       border: none;
@@ -277,6 +278,7 @@ import { catchError, of, tap } from 'rxjs';
       white-space: nowrap;
       transition: box-shadow 0.2s ease, transform 0.2s ease;
       border: none;
+      border: 1px solid #000000ff;
     }
     .btn-advanced-search:hover {
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
@@ -287,6 +289,7 @@ import { catchError, of, tap } from 'rxjs';
       background-color: #f8f7fB;
       padding: 0 20px 60px 20px;
       text-align: center;
+
     }
     .content-card {
       background-color: #FFFFFF;
