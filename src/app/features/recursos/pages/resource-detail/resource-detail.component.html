@@ -4,202 +4,245 @@
     <div class="header-left"></div>
 
     <div class="header-right">
-      <button
-        [disabled]="!isAuthenticated()"
-        class="btn-secondary"
-      >
-        DEJAR RESEÑA
-      </button>
 
-      <button
-        (click)="guardarEnBiblioteca()"
-        [disabled]="!isAuthenticated() || guardando() || guardado() || !recurso()"
-        class="btn-primary"
-      >
+
+      <button (click)="guardarEnBiblioteca()" [disabled]="!isAuthenticated() || guardando() || guardado() || !recurso()"
+        class="btn-primary">
         {{ guardado() ? 'GUARDADO' : (guardando() ? 'GUARDANDO...' : 'GUARDAR') }}
       </button>
     </div>
   </header>
 
   @if (loading()) {
-    <p>Cargando recurso...</p>
+  <p>Cargando recurso...</p>
   } @else if (error() && !recurso()) {
-    <p class="error-text">{{ error() }}</p>
+  <p class="error-text">{{ error() }}</p>
   } @else if (recurso()) {
-    <div class="resource-layout">
-      <!-- Panel izquierdo: contenido -->
-      <section class="resource-view">
-        <div class="resource-box">
-          <h2 class="resource-title">
-            {{ recurso()!.titulo }}
-          </h2>
+  <div class="resource-layout">
+    <!-- Panel izquierdo: contenido -->
+    <section class="resource-view">
+      <div class="resource-box">
+        <h2 class="resource-title">
+          {{ recurso()!.titulo }}
+        </h2>
 
-          @if (esTexto()) {
-            <div class="resource-content-text">
-              {{ recurso()!.contenido }}
-            </div>
-          } @else if (esEnlace()) {
-            <div class="resource-content-link">
-              <a [href]="recurso()!.contenido" rel="noopener" target="_blank">
-                {{ recurso()!.contenido }}
-              </a>
-            </div>
-          } @else if (esArchivo()) {
-            <div class="resource-content-file">
-              <div class="file-icon">📄</div>
-              <div class="file-details">
-                <p class="file-name">{{ recurso()!.contenido }}</p>
-                <button
-                  class="btn-download"
-                  (click)="descargarArchivo()"
-                  [disabled]="loading()">
-                  📥 Descargar Archivo
-                </button>
-              </div>
-            </div>
-          }
+        @if (esTexto()) {
+        <div class="resource-content-text">
+          {{ recurso()!.contenido }}
         </div>
-      </section>
-
-      <!-- Panel derecho: info del recurso -->
-      <aside class="resource-sidebar">
-        <h3 class="sidebar-title">{{ recurso()!.titulo }}</h3>
-        <p class="sidebar-subtitle">{{ recurso()!.descripcion }}</p>
-
-        <div class="sidebar-block">
-          <p class="sidebar-label">Curso:</p>
-          <p class="sidebar-text">
-            {{ recurso()!.nombreCurso || 'Curso no especificado' }}
-          </p>
-          <p class="sidebar-text">
-            {{ recurso()!.nombreUniversidad || 'Universidad no especificada' }}
-          </p>
+        } @else if (esEnlace()) {
+        <div class="resource-content-link">
+          <a [href]="recurso()!.contenido" rel="noopener" target="_blank">
+            {{ recurso()!.contenido }}
+          </a>
         </div>
+        } @else if (esArchivo()) {
+        <div class="resource-content-file">
+          <div class="file-icon">📄</div>
+          <div class="file-details">
+            <p class="file-name">{{ nombreArchivoDisplay() }}</p>
 
-        <div class="sidebar-block">
-          <p class="sidebar-label">Tipo de recurso:</p>
-          <p class="sidebar-text">{{ recurso()!.tipo }}</p>
-        </div>
-
-        <div class="sidebar-block">
-          <p class="sidebar-label">Creado el:</p>
-          <p class="sidebar-text">
-            {{ recurso()!.creado_el | date:'dd/MM/yyyy' }}
-          </p>
-        </div>
-
-        <div class="sidebar-block">
-          <p class="sidebar-label">Autor:</p>
-          <p class="sidebar-text">{{ recurso()!.autorNombre }}</p>
-        </div>
-
-        <div class="sidebar-block sidebar-comments-placeholder">
-          <p class="sidebar-label">Comentarios</p>
-
-          @if (loadingResenas()) {
-            <p class="sidebar-text">Cargando reseñas...</p>
-          } @else if (resenasError()) {
-            <p class="sidebar-text error-text">{{ resenasError() }}</p>
-          } @else if (resenas().length === 0) {
-            <p class="sidebar-text">Todavía no hay reseñas.</p>
-          } @else {
-            <ul class="reviews-list">
-              @for (resena of resenas(); track resena.id_resena) {
-                <li class="review-item">
-                  <div class="review-header">
-                    <span class="review-author">{{ resena.nombre_autor }}</span>
-
-                    @if (puedeEditarResena(resena)) {
-                      <button
-                        type="button"
-                        class="review-sentiment-button"
-                        [class.positivo]="resena.es_positivo"
-                        [class.negativo]="!resena.es_positivo"
-                        [disabled]="estaEditandoVoto(resena.id_resena)"
-                        (click)="toggleVotoResena(resena)"
-                      >
-                        {{ resena.es_positivo ? 'Marcar como no útil' : 'Marcar como útil' }}
-                      </button>
-                    } @else {
-                      <span
-                        class="review-sentiment"
-                        [class.positivo]="resena.es_positivo"
-                        [class.negativo]="!resena.es_positivo"
-                      >
-                        {{ resena.es_positivo ? 'Útil' : 'No útil' }}
-                      </span>
-                    }
-                  </div>
-                  <p class="review-comment">{{ resena.contenido }}</p>
-                  <span class="review-date">
-                    {{ resena.creado_el | date:'dd/MM/yyyy' }}
-                  </span>
-                </li>
-              }
-            </ul>
-          }
-
-          @if (isAuthenticated()) {
-            <form class="new-review" [formGroup]="resenaForm" (ngSubmit)="enviarResena()">
-              <p class="sidebar-label">Deja tu reseña</p>
-
-              <textarea
-                class="new-review-textarea"
-                formControlName="contenido"
-                rows="3"
-                placeholder="Escribe tu comentario (5 a 255 caracteres)..."
-              ></textarea>
-              @if (contenidoCtrl?.invalid && contenidoCtrl?.touched) {
-                <p class="error-text">
-                  El comentario debe tener entre 5 y 255 caracteres.
-                </p>
-              }
-
-              <div class="new-review-options">
-                <label>
-                  <input
-                    type="radio"
-                    formControlName="es_positivo"
-                    [value]="true"
-                  />
-                  Útil
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    formControlName="es_positivo"
-                    [value]="false"
-                  />
-                  No útil
-                </label>
-              </div>
-              @if (esPositivoCtrl?.invalid && esPositivoCtrl?.touched) {
-                <p class="error-text">
-                  Indica si te pareció útil o no.
-                </p>
-              }
-
-              <button
-                type="submit"
-                class="btn-secondary"
-                [disabled]="resenaForm.invalid || enviandoResena()"
-              >
-                {{ enviandoResena() ? 'Publicando...' : 'Publicar reseña' }}
+            <div class="file-actions-row">
+              <button class="btn-download" (click)="descargarArchivo()" [disabled]="loadingArchivo()">
+                <!-- Cambio aquí -->
+                📥 {{ loadingArchivo() ? 'Procesando...' : 'Descargar Archivo' }}
               </button>
 
-              @if (errorResena()) {
-                <p class="error-text">
-                  {{ errorResena() }}
-                </p>
-              }
-            </form>
-          } @else {
-            <p class="auth-hint">
-              Inicia sesión para dejar una reseña o guardar este recurso.
-            </p>
-          }
+              <button class="btn-preview" type="button" (click)="toggleVisor()" [disabled]="loadingArchivo()">
+                <!-- Cambio aquí -->
+                👁️ {{ mostrarVisor() ? 'Ocultar Vista Previa' : 'Visualizar Archivo' }}
+              </button>
+            </div>
+
+          </div>
         </div>
-      </aside>
-    </div>
+
+        <!-- NUEVO: ÁREA DE VISUALIZACIÓN -->
+        @if (mostrarVisor()) {
+        <div class="visor-container">
+
+          <!-- 1. ESTADO CARGANDO -->
+          @if (loadingArchivo()) {
+          <div class="visor-state">
+            <div class="spinner"></div>
+            <p>Cargando documento...</p>
+          </div>
+          }
+
+          <!-- 2. ESTADO DE ERROR -->
+          @if (errorVisor()) {
+          <div class="visor-state error-state">
+            <p>⚠️ {{ errorVisor() }}</p>
+            <button (click)="descargarArchivo()" class="btn-link">
+              Intenta descargarlo directamente
+            </button>
+          </div>
+          }
+
+          <!-- 3. VISOR PDF -->
+          @if (!loadingArchivo() && !errorVisor() && tipoArchivo() === 'PDF' && pdfUrlSegura()) {
+          <object [data]="pdfUrlSegura()" type="application/pdf" width="100%" height="700px">
+            <p>Tu navegador no puede mostrar este PDF.</p>
+          </object>
+          }
+
+          <!-- 4. VISOR DOCX (CORREGIDO) -->
+          <!-- Quitamos !loadingArchivo() para que el elemento exista mientras carga -->
+          <!-- Usamos [hidden] para ocultarlo visualmente mientras carga, pero mantenerlo en el DOM -->
+          @if (!errorVisor() && tipoArchivo() === 'DOCX') {
+          <div #docxContainer class="docx-wrapper" [hidden]="loadingArchivo()">
+          </div>
+          }
+
+        </div>
+        }
+        }
+      </div>
+    </section>
+
+    <!-- Panel derecho: info del recurso -->
+    <aside class="resource-sidebar">
+      <h3 class="sidebar-title">{{ recurso()!.titulo }}</h3>
+      <p class="sidebar-subtitle">{{ recurso()!.descripcion }}</p>
+
+      <div class="sidebar-info-grid">
+        <div class="info-item">
+          <span class="info-icon">🎓</span>
+          <div class="info-content">
+            <span class="info-label">Curso</span>
+            <span class="info-value">{{ recurso()!.nombreCurso || 'No especificado' }}</span>
+          </div>
+        </div>
+
+        <div class="info-item">
+          <span class="info-icon">🏛️</span>
+          <div class="info-content">
+            <span class="info-label">Universidad</span>
+            <span class="info-value">{{ recurso()!.nombreUniversidad || 'No especificada' }}</span>
+          </div>
+        </div>
+
+        <div class="info-item">
+          <span class="info-icon">📂</span>
+          <div class="info-content">
+            <span class="info-label">Tipo</span>
+            <span class="info-value">{{ recurso()!.tipo }}</span>
+          </div>
+        </div>
+
+        <div class="info-item">
+          <span class="info-icon">📅</span>
+          <div class="info-content">
+            <span class="info-label">Fecha</span>
+            <span class="info-value">{{ recurso()!.creado_el | date:'dd/MM/yyyy' }}</span>
+          </div>
+        </div>
+
+        <div class="info-item">
+          <span class="info-icon">👤</span>
+          <div class="info-content">
+            <span class="info-label">Autor</span>
+            <span class="info-value">{{ recurso()!.autorNombre }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-block sidebar-comments-placeholder">
+        <p class="sidebar-label">Comentarios</p>
+
+        @if (loadingResenas()) {
+        <p class="sidebar-text">Cargando reseñas...</p>
+        } @else if (resenasError()) {
+        <p class="sidebar-text error-text">{{ resenasError() }}</p>
+        } @else if (resenas().length === 0) {
+        <p class="sidebar-text">Todavía no hay reseñas.</p>
+        } @else {
+        <ul class="reviews-list">
+          @for (resena of resenas(); track resena.id_resena) {
+          <li class="review-item">
+            <div class="review-header">
+              <span class="review-author">{{ resena.nombre_autor }}</span>
+
+              @if (puedeEditarResena(resena)) {
+              <div class="vote-actions">
+                <button type="button" class="emoji-btn" [class.active]="resena.es_positivo"
+                  [disabled]="estaEditandoVoto(resena.id_resena)" (click)="toggleVotoResena(resena)"
+                  title="Marcar como útil">
+                  👍
+                </button>
+                <button type="button" class="emoji-btn" [class.active]="!resena.es_positivo"
+                  [disabled]="estaEditandoVoto(resena.id_resena)" (click)="toggleVotoResena(resena)"
+                  title="Marcar como no útil">
+                  👎
+                </button>
+              </div>
+              } @else {
+              <span class="review-sentiment" [class.positivo]="resena.es_positivo"
+                [class.negativo]="!resena.es_positivo">
+                {{ resena.es_positivo ? '👍 Útil' : '👎 No útil' }}
+              </span>
+              }
+            </div>
+            <p class="review-comment">{{ resena.contenido }}</p>
+            <span class="review-date">
+              {{ resena.creado_el | date:'dd/MM/yyyy' }}
+            </span>
+          </li>
+          }
+        </ul>
+        }
+
+        @if (isAuthenticated()) {
+        @if (!usuarioYaReseno()) {
+        <form class="new-review" [formGroup]="resenaForm" (ngSubmit)="enviarResena()">
+          <p class="sidebar-label">Deja tu reseña</p>
+
+          <textarea class="new-review-textarea" formControlName="contenido" rows="3"
+            placeholder="Escribe tu comentario (5 a 255 caracteres)..."></textarea>
+          @if (contenidoCtrl?.invalid && contenidoCtrl?.touched) {
+          <p class="error-text">
+            El comentario debe tener entre 5 y 255 caracteres.
+          </p>
+          }
+
+          <div class="new-review-options">
+            <label class="radio-label">
+              <input type="radio" formControlName="es_positivo" [value]="true" />
+              <span>👍 Útil</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" formControlName="es_positivo" [value]="false" />
+              <span>👎 No útil</span>
+            </label>
+          </div>
+          @if (esPositivoCtrl?.invalid && esPositivoCtrl?.touched) {
+          <p class="error-text">
+            Indica si te pareció útil o no.
+          </p>
+          }
+
+          <button type="submit" class="btn-secondary" [disabled]="resenaForm.invalid || enviandoResena()">
+            {{ enviandoResena() ? 'Publicando...' : 'Publicar reseña' }}
+          </button>
+
+          @if (errorResena()) {
+          <p class="error-text">
+            {{ errorResena() }}
+          </p>
+          }
+        </form>
+        } @else {
+        <div class="already-reviewed-msg">
+          <p>✅ Ya has valorado este recurso.</p>
+        </div>
+        }
+        } @else {
+        <p class="auth-hint">
+          Inicia sesión para dejar una reseña o guardar este recurso.
+        </p>
+        }
+      </div>
+    </aside>
+  </div>
   }
 </div>

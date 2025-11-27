@@ -16,9 +16,17 @@ export interface ForoTopicRequest {
 }
 
 export interface ForoComment {
-  id: number;
+  id_comentario: number;
+  contenido: string;
+  creado_el: string;
   nombreAutor: string;
   apellidoAutor: string;
-  tiempo: string;
+  id_usuario: number;
+  id_comentario_padre?: number;
+}
+
+export interface ForoCommentRequest {
   contenido: string;
+  id_foro: number;
+  id_comentario_padre?: number;
 }

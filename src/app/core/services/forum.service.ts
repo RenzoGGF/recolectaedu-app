@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { ForoTopic, ForoTopicRequest } from '../models/forum.model';
+import { ForoTopic, ForoTopicRequest, ForoComment, ForoCommentRequest } from '../models/forum.model';
 
 @Injectable({
   providedIn: 'root'
@@ -25,8 +25,15 @@ export class ForumService {
     return this.http.get<ForoTopic>(url);
   }
 
-
   createTopic(data: ForoTopicRequest): Observable<ForoTopic> {
     return this.http.post<ForoTopic>(this.privateApiUrl, data);
   }
+  getCommentsByTopic(topicId: number): Observable<ForoComment[]> {
+    return this.http.get<ForoComment[]>(`${environment.apiUrl}/public/foros/${topicId}/comentarios`);
+  }
+
+  createComment(data: ForoCommentRequest): Observable<ForoComment> {
+    return this.http.post<ForoComment>(`${environment.apiUrl}/comentarios`, data);
+
+}
 }
