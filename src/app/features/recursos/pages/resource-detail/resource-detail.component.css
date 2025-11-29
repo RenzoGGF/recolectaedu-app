@@ -280,10 +280,41 @@
 }
 
 .review-author {
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: 0.9rem;
+  font-weight: 700;
   color: #0d8eff;
 }
+
+.review-date {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.review-body {
+  margin: 6px 0;
+}
+
+.review-comment {
+  font-size: 0.85rem;
+  margin: 0;
+  line-height: 1.4;
+  color: #333;
+}
+
+.review-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.edit-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+
 
 .vote-actions {
   display: flex;
@@ -348,15 +379,9 @@
   color: #0d8eff;
 }
 
-.review-comment {
-  font-size: 0.85rem;
-  margin: 0;
-}
 
-.review-date {
-  font-size: 0.75rem;
-  color: #777;
-}
+
+
 
 .new-review {
   margin-top: 12px;
@@ -494,4 +519,82 @@
   100% {
     transform: rotate(360deg);
   }
+}
+
+/* Botones de edición */
+.btn-edit-review {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: #555;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.btn-edit-review:hover {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.btn-edit-review:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-cancel {
+  background: none;
+  border: 1px solid #ccc;
+  padding: 8px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #555;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-cancel:hover {
+  background-color: #f5f5f5;
+  color: #333;
+  border-color: #bbb;
+}
+
+.btn-cancel:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.btn-delete-review {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: #c0392b;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.btn-delete-review:hover {
+  background-color: #fce8e6;
+  color: #a93226;
+}
+
+.btn-delete-review:disabled {
+  opacity: 0.5;
+  cursor: default;
 }

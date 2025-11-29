@@ -1,8 +1,8 @@
-import {inject, Injectable} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
-import {environment} from '../../../environments/environment';
-import {Observable} from 'rxjs';
-import {ResenaCreateRequest, ResenaPartialUpdateRequest, ResenaResponse} from '../models/resena.model';
+import { inject, Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
+import { Observable } from 'rxjs';
+import { ResenaCreateRequest, ResenaPartialUpdateRequest, ResenaResponse } from '../models/resena.model';
 
 @Injectable({
   providedIn: 'root'
@@ -24,5 +24,9 @@ export class ResenaService {
 
   updateResenaPartial(id_resena: number, request: ResenaPartialUpdateRequest): Observable<ResenaResponse> {
     return this.http.patch<ResenaResponse>(`${this.base_url}/${id_resena}`, request);
+  }
+
+  deleteResena(id_resena: number): Observable<void> {
+    return this.http.delete<void>(`${this.base_url}/${id_resena}`);
   }
 }
