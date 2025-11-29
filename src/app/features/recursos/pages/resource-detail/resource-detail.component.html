@@ -148,7 +148,7 @@
       </div>
 
       <div class="sidebar-block sidebar-comments-placeholder">
-        <p class="sidebar-label">Comentarios</p>
+        <p class="sidebar-label">Reseñas</p>
 
         @if (loadingResenas()) {
         <p class="sidebar-text">Cargando reseñas...</p>
@@ -160,9 +160,21 @@
         <ul class="reviews-list">
           @for (resena of resenas(); track resena.id_resena) {
           <li class="review-item">
+            <!-- HEADER: Autor y Fecha -->
             <div class="review-header">
               <span class="review-author">{{ resena.nombre_autor }}</span>
+              <span class="review-date">
+                {{ resena.creado_el | date:'dd/MM/yyyy' }}
+              </span>
+            </div>
 
+            <!-- BODY: Comentario -->
+            <div class="review-body">
+              <p class="review-comment">{{ resena.contenido }}</p>
+            </div>
+
+            <!-- FOOTER: Acciones y Sentimiento -->
+            <div class="review-footer">
               @if (puedeEditarResena(resena)) {
               <div class="vote-actions">
                 <button type="button" class="emoji-btn" [class.active]="resena.es_positivo"
@@ -176,6 +188,18 @@
                   👎
                 </button>
               </div>
+
+              <div class="edit-actions">
+                <button type="button" class="btn-edit-review" (click)="iniciarEdicion(resena)"
+                  [disabled]="editandoResena() && resenaEnEdicionId() !== resena.id_resena">
+                  ✏️ Editar
+                </button>
+
+                <button type="button" class="btn-delete-review" (click)="eliminarResena(resena)"
+                  [disabled]="eliminandoResenaId() === resena.id_resena || (editandoResena() && resenaEnEdicionId() === resena.id_resena)">
+                  🗑️ {{ eliminandoResenaId() === resena.id_resena ? 'Eliminando...' : 'Eliminar' }}
+                </button>
+              </div>
               } @else {
               <span class="review-sentiment" [class.positivo]="resena.es_positivo"
                 [class.negativo]="!resena.es_positivo">
@@ -183,19 +207,17 @@
               </span>
               }
             </div>
-            <p class="review-comment">{{ resena.contenido }}</p>
-            <span class="review-date">
-              {{ resena.creado_el | date:'dd/MM/yyyy' }}
-            </span>
           </li>
           }
         </ul>
         }
 
         @if (isAuthenticated()) {
-        @if (!usuarioYaReseno()) {
+        @if (!usuarioYaReseno() || editandoResena()) {
         <form class="new-review" [formGroup]="resenaForm" (ngSubmit)="enviarResena()">
-          <p class="sidebar-label">Deja tu reseña</p>
+          <p class="sidebar-label">
+            {{ editandoResena() ? 'Edita tu reseña' : 'Deja tu reseña' }}
+          </p>
 
           <textarea class="new-review-textarea" formControlName="contenido" rows="3"
             placeholder="Escribe tu comentario (5 a 255 caracteres)..."></textarea>
@@ -221,9 +243,18 @@
           </p>
           }
 
-          <button type="submit" class="btn-secondary" [disabled]="resenaForm.invalid || enviandoResena()">
-            {{ enviandoResena() ? 'Publicando...' : 'Publicar reseña' }}
-          </button>
+          <div class="form-actions">
+            <button type="submit" class="btn-secondary" [disabled]="resenaForm.invalid || enviandoResena()">
+              {{ enviandoResena() ? (editandoResena() ? 'Actualizando...' : 'Publicando...') : (editandoResena() ?
+              'Actualizar reseña' : 'Publicar reseña') }}
+            </button>
+
+            @if (editandoResena()) {
+            <button type="button" class="btn-cancel" (click)="cancelarEdicion()" [disabled]="enviandoResena()">
+              Cancelar
+            </button>
+            }
+          </div>
 
           @if (errorResena()) {
           <p class="error-text">
