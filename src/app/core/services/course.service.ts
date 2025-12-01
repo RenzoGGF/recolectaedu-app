@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Course } from '../models/course.model';
-import { UniversityRanking } from '../models/university.model';
+import { UniversityCourseCount, UniversityRanking } from '../models/university.model';
 import { RankingResponse } from '../models/ranking.model';
 
 
@@ -48,7 +48,7 @@ export class CourseService {
     size?: number;
   }): Observable<RankingResponse> {
     let httpParams = new HttpParams();
-    
+
     if (params?.universidad) {
       httpParams = httpParams.set('universidad', params.universidad);
     }
@@ -61,11 +61,16 @@ export class CourseService {
     if (params?.size !== undefined) {
       httpParams = httpParams.set('size', params.size.toString());
     }
-    
+
     return this.http.get<RankingResponse>(
       `${environment.apiUrl}/public/cursos/ranking-aportes`,
       { params: httpParams }
     );
+  }
+
+  getUniversitiesWithCourseCount(): Observable<UniversityCourseCount[]> {
+    const url = `${this.baseUrl}/universidades/con-cursos`;
+    return this.http.get<UniversityCourseCount[]>(url);
   }
 
 

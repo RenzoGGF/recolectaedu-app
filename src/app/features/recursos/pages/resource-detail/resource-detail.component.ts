@@ -57,7 +57,14 @@ export class ResourceDetailComponent implements OnInit, OnDestroy {
 
   enviandoResena = signal(false);
   errorResena = signal<string | null>(null);
-  editandoVoto = signal<Record<number, boolean>>({})
+  editandoVoto = signal<Record<number, boolean>>({});
+
+  // Estado para edición de reseña
+  editandoResena = signal(false);
+  resenaEnEdicionId = signal<number | null>(null);
+
+  // Estado para eliminación
+  eliminandoResenaId = signal<number | null>(null);
 
   mostrarVisor = signal(false);
   tipoArchivo = signal<VisorFormato | null>(null);
@@ -234,14 +241,36 @@ export class ResourceDetailComponent implements OnInit, OnDestroy {
 
     const { contenido, es_positivo } = this.resenaForm.value;
 
+    this.enviandoResena.set(true);
+    this.errorResena.set(null);
+
+    // LÓGICA DE EDICIÓN
+    if (this.editandoResena() && this.resenaEnEdicionId()) {
+      const idResena = this.resenaEnEdicionId()!;
+      this.resenaService.updateResenaPartial(idResena, { contenido, es_positivo }).subscribe({
+        next: (resenaActualizada) => {
+          this.enviandoResena.set(false);
+          // Actualizamos la lista local
+          this.resenas.update(lista =>
+            lista.map(r => (r.id_resena === idResena ? resenaActualizada : r))
+          );
+          this.cancelarEdicion(); // Reseteamos el formulario y estado
+        },
+        error: (err: HttpErrorResponse) => {
+          console.error('Error al actualizar reseña:', err);
+          this.enviandoResena.set(false);
+          this.errorResena.set('No se pudo actualizar la reseña. Inténtalo nuevamente.');
+        }
+      });
+      return;
+    }
+
+    // LÓGICA DE CREACIÓN (EXISTENTE)
     const payload: ResenaCreateRequest = {
       id_recurso: recurso.id_recurso,
       contenido,
       es_positivo
     };
-
-    this.enviandoResena.set(true);
-    this.errorResena.set(null);
 
     this.resenaService.createResena(payload).subscribe({
       next: (resenaCreada) => {
@@ -256,6 +285,59 @@ export class ResourceDetailComponent implements OnInit, OnDestroy {
         console.error('Error al crear reseña:', err);
         this.enviandoResena.set(false);
         this.errorResena.set('No se pudo publicar la reseña. Inténtalo nuevamente.');
+      }
+    });
+  }
+
+  iniciarEdicion(resena: ResenaResponse): void {
+    this.editandoResena.set(true);
+    this.resenaEnEdicionId.set(resena.id_resena);
+    this.errorResena.set(null);
+
+    // Cargar datos en el formulario
+    this.resenaForm.patchValue({
+      contenido: resena.contenido,
+      es_positivo: resena.es_positivo
+    });
+
+    // Scrollear hacia el formulario (opcional, pero útil)
+    // document.querySelector('.new-review')?.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  cancelarEdicion(): void {
+    this.editandoResena.set(false);
+    this.resenaEnEdicionId.set(null);
+    this.errorResena.set(null);
+    this.resenaForm.reset({
+      contenido: '',
+      es_positivo: null
+    });
+  }
+
+  eliminarResena(resena: ResenaResponse): void {
+    if (!confirm('¿Estás seguro de que quieres eliminar tu reseña?')) {
+      return;
+    }
+
+    this.eliminandoResenaId.set(resena.id_resena);
+    this.errorResena.set(null);
+
+    this.resenaService.deleteResena(resena.id_resena).subscribe({
+      next: () => {
+        // Eliminar de la lista local
+        this.resenas.update(lista => lista.filter(r => r.id_resena !== resena.id_resena));
+
+        // Si estaba editando esta misma reseña, cancelar edición
+        if (this.editandoResena() && this.resenaEnEdicionId() === resena.id_resena) {
+          this.cancelarEdicion();
+        }
+
+        this.eliminandoResenaId.set(null);
+      },
+      error: (err: HttpErrorResponse) => {
+        console.error('Error al eliminar reseña:', err);
+        this.errorResena.set('No se pudo eliminar la reseña. Inténtalo nuevamente.');
+        this.eliminandoResenaId.set(null);
       }
     });
   }
