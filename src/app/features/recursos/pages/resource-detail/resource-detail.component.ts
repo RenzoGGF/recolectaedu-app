@@ -15,7 +15,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { renderAsync } from 'docx-preview';
 
-type VisorFormato = 'PDF' | 'DOCX' | 'DOC';
+type VisorFormato = 'PDF' | 'DOCX';
 
 @Component({
   selector: 'app-resource-detail',
@@ -379,7 +379,11 @@ export class ResourceDetailComponent implements OnInit, OnDestroy {
 
     if (nombreArchivo.endsWith('.pdf')) formatoDetectado = 'PDF';
     else if (nombreArchivo.endsWith('.docx')) formatoDetectado = 'DOCX';
-    else if (nombreArchivo.endsWith('.doc')) formatoDetectado = 'DOC';
+    else if (nombreArchivo.endsWith('.doc')) {
+      this.mostrarVisor.set(true);
+      this.errorVisor.set('La vista previa no está disponible para archivos .doc. Por favor, descarga el archivo para verlo.');
+      return;
+    }
 
     if (formatoDetectado === 'OTRO') {
       alert('La vista previa solo está disponible para PDF y archivos Word (.docx).');
@@ -407,7 +411,7 @@ export class ResourceDetailComponent implements OnInit, OnDestroy {
           this.pdfUrlSegura.set(this.sanitizer.bypassSecurityTrustResourceUrl(this.blobUrl));
           this.loadingArchivo.set(false);
         }
-        else if (formatoDetectado === 'DOCX' || formatoDetectado === 'DOC') {
+        else if (formatoDetectado === 'DOCX') {
           const docxBlob = new Blob([blobOriginal], {
             type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
           });
