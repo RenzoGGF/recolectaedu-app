@@ -1,7 +1,9 @@
-import { Component, inject, computed } from '@angular/core';
+import { Component, inject, computed, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { UsuarioService } from '../../core/services/usuario.service';
+import { UsuarioStats } from '../../core/models/usuario-stats.model';
 
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faUser, faPlus } from '@fortawesome/free-solid-svg-icons';
@@ -22,11 +24,11 @@ import { faUser, faPlus } from '@fortawesome/free-solid-svg-icons';
 
       <div class="stats-section">
         <div class="stat-item">
-          <strong>0</strong>
+          <strong>{{ stats()?.totalRecursosPublicados || 0 }}</strong>
           <span>Subidos</span>
         </div>
         <div class="stat-item">
-          <strong>0</strong>
+          <strong>{{ stats()?.totalResenasPositivas || 0 }}</strong>
           <span>Votos</span>
         </div>
         <div class="stat-item">
@@ -164,11 +166,15 @@ import { faUser, faPlus } from '@fortawesome/free-solid-svg-icons';
     }
   `]
 })
-export class UserSidebar {
+export class UserSidebar implements OnInit {
   private authService = inject(AuthService);
+  private usuarioService = inject(UsuarioService);
   
   iconUser = faUser;
   iconPlus = faPlus;
+
+  // Signal para las estadísticas
+  stats = signal<UsuarioStats | null>(null);
 
   userName = computed(() => {
     const auth = this.authService.authState();
@@ -179,4 +185,26 @@ export class UserSidebar {
     const auth = this.authService.authState();
     return auth?.university || '';
   });
+
+  ngOnInit(): void {
+    this.loadUserStats();
+  }
+
+  private async loadUserStats(): Promise<void> {
+    const userId = await this.authService.getUserId();
+    
+    if (!userId) {
+      console.warn('No se pudo obtener el ID del usuario');
+      return;
+    }
+
+    this.usuarioService.getUserStats(userId).subscribe({
+      next: (data) => {
+        this.stats.set(data);
+      },
+      error: (err) => {
+        console.error('Error al cargar estadísticas en sidebar:', err);
+      }
+    });
+  }
 }
