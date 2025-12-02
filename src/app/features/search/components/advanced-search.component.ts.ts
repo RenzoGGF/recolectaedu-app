@@ -29,7 +29,7 @@ import { faTimes } from '@fortawesome/free-solid-svg-icons';
         <div class="form-row">
           <div class="form-group">
             <label for="orden">Orden</label>
-            <select id="orden" formControlName="ordenarPor">
+            <select id="orden" formControlName="ordenarPor" class="custom-input">
               <option value="RECIENTES">Recientes</option>
               <option value="RELEVANTES">Relevantes</option>
             </select>
@@ -37,13 +37,23 @@ import { faTimes } from '@fortawesome/free-solid-svg-icons';
 
           <div class="form-group">
             <label for="universidad">Universidad</label>
-            <input type="text" id="universidad" formControlName="universidad">
+            <select id="universidad" formControlName="universidad" class="custom-input">
+              <option value="" disabled selected>Selecciona una universidad</option>
+              @for (uni of universidades; track uni) {
+                <option [value]="uni">{{ uni }}</option>
+              }
+            </select>
           </div>
         </div>
 
         <div class="form-group full-width">
           <label for="autor">Autor</label>
-          <input type="text" id="autor" formControlName="autor">
+          <input
+            type="text"
+            id="autor"
+            formControlName="autor"
+            class="custom-input"
+            placeholder="Nombre del autor">
         </div>
 
         <div class="modal-actions">
@@ -71,10 +81,7 @@ import { faTimes } from '@fortawesome/free-solid-svg-icons';
       z-index: 1000;
       font-family: 'Poppins', sans-serif;
     }
-    .main-content {
-      margin-right: 320px;
-      padding-right: 20px;
-    }
+
     .modal-overlay {
       position: absolute;
       top: 0;
@@ -84,43 +91,60 @@ import { faTimes } from '@fortawesome/free-solid-svg-icons';
       background-color: rgba(0, 0, 0, 0.5);
       backdrop-filter: blur(4px);
     }
+
     .modal-container {
       position: relative;
       z-index: 1001;
       background-color: #FFFFFF;
-      border-radius: 15px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-      padding: 60px 60px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      padding: 40px;
       width: 100%;
-      max-width: 600px;
+      max-width: 650px;
       color: #000;
+      animation: fadeIn 0.2s ease-out;
     }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
     .modal-header {
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
-      margin-bottom: 20px;
+      margin-bottom: 30px;
+      position: relative;
     }
+
     .modal-header h2 {
-      font-size: 1.5rem;
+      font-size: 1.8rem;
       font-weight: 700;
-      color: #000;
+      color: #240334;
       margin: 0;
-      flex: 1;
-      text-align: center;
-      margin-left: 30px;
     }
+
     .btn-close {
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
       background: none;
       border: none;
       font-size: 1.5rem;
       color: #8A8A8A;
       cursor: pointer;
+      transition: color 0.2s;
     }
+    .btn-close:hover {
+      color: #000;
+    }
+
     .form-row {
       display: flex;
       gap: 20px;
-      margin-bottom: 15px;
+      margin-bottom: 20px;
     }
     .form-group {
       display: flex;
@@ -128,56 +152,85 @@ import { faTimes } from '@fortawesome/free-solid-svg-icons';
       flex: 1;
     }
     .form-group.full-width {
-      flex-basis: 100%;
+      margin-bottom: 30px;
     }
+
     .form-group label {
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       font-weight: 600;
-      margin-bottom: 5px;
-      color: #555;
+      margin-bottom: 8px;
+      color: #333;
+      margin-left: 5px;
     }
-    .form-group input,
-    .form-group select {
+
+    .custom-input {
       width: 100%;
-      padding: 12px 14px;
-      border: 1px solid #AAA;
-      border-radius: 25px;
+      padding: 12px 20px;
+      border: 1px solid #CCC;
+      border-radius: 50px;
       font-size: 1rem;
       font-family: 'Poppins', sans-serif;
-      font-weight: 600;
+      background-color: #F9F9F9;
+      transition: all 0.2s ease;
+      box-sizing: border-box;
+      outline: none;
+      appearance: none;
     }
+
+    select.custom-input {
+      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+      background-repeat: no-repeat;
+      background-position: right 20px top 50%;
+      background-size: 12px auto;
+    }
+
+    .custom-input:focus {
+      border-color: #0D8EFF; /* Azul al enfocar */
+      background-color: #FFF;
+      box-shadow: 0 0 0 3px rgba(13, 142, 255, 0.1);
+    }
+
+    /* Botones */
     .modal-actions {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 10px;
-      margin-top: 20px;
-      padding-top: 0;
-      border-top: none;
+      gap: 12px;
     }
+
     .btn {
-      padding: 12px 20px;
+      width: 280px;
+      max-width: 100%;
+      padding: 14px 20px;
       border: none;
       border-radius: 50px;
       font-weight: 700;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       cursor: pointer;
-      width: 250px;
-      max-width: 100%;
+      font-family: 'Poppins', sans-serif;
+      transition: transform 0.1s ease, box-shadow 0.2s ease;
     }
-    .btn-clear {
-      background-color: #0D8EFF;
-      color: #FFFFFF;
+
+    .btn:active {
+      transform: scale(0.98);
     }
-    .btn-clear:hover {
-      background-color: #0056b3;
-    }
+
     .btn-apply {
       background-color: #32CD32;
       color: #FFFFFF;
+      box-shadow: 0 4px 10px rgba(50, 205, 50, 0.3);
     }
     .btn-apply:hover {
-      background-color: #228B22;
+      background-color: #28a728;
+    }
+
+    .btn-clear {
+      background-color: #0D8EFF;
+      color: #FFFFFF;
+      box-shadow: 0 4px 10px rgba(13, 142, 255, 0.3);
+    }
+    .btn-clear:hover {
+      background-color: #0b7ad8;
     }
   `]
 })
@@ -188,9 +241,20 @@ export class AdvancedSearchComponent {
   filterForm: FormGroup;
   iconClose = faTimes;
 
+  universidades: string[] = [
+    'Universidad Nacional de Ingeniería (UNI)',
+    'Universidad Nacional Mayor de San Marcos (UNMSM)',
+    'Universidad Nacional Federico Villarreal (UNFV)',
+    'Pontificia Universidad Católica del Perú (PUCP)',
+    'Universidad de Lima (ULima)',
+    'Universidad Peruana de Ciencias Aplicadas (UPC)',
+    'Universidad de Ingeniería y Tecnología (UTEC)',
+    'Universidad Tecnológica del Perú (UTP)'
+  ];
+
   constructor(private fb: FormBuilder) {
     this.filterForm = this.fb.group({
-      ordenarPor: 'RECIENTES',
+      ordenarPor: ['RECIENTES'],
       universidad: [''],
       autor: ['']
     });
