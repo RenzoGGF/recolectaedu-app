@@ -1,5 +1,5 @@
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Membresia, Plan } from '../../../core/models/membresia.model';
 import { MembresiaService } from '../../../core/services/membresia.service';
@@ -60,17 +60,20 @@ import { UserProfile } from '../../../core/models/user-profile.model';
             <button
               type="button"
               class="btn-primary"
-              [disabled]="saving || currentPlanType !== 'FREE'"
+              [disabled]="saving || hasActivePlan"
               (click)="onSubscribe('MONTHLY')"
             >
               {{
-                currentPlanType !== 'FREE'
-                  ? 'Ya tienes una membresía activa'
+                hasActivePlan && currentPlanType === 'MONTHLY'
+                  ? 'Ya tienes este plan'
+                  : hasActivePlan && currentPlanType !== 'MONTHLY'
+                  ? 'Ya tienes otro plan activo'
                   : saving && pendingPlan === 'MONTHLY'
                   ? 'Procesando...'
                   : 'Elegir plan mensual'
               }}
             </button>
+
           </article>
 
           <!-- Plan Anual -->
@@ -90,12 +93,14 @@ import { UserProfile } from '../../../core/models/user-profile.model';
             <button
               type="button"
               class="btn-primary btn-primary-strong"
-              [disabled]="saving || currentPlanType !== 'FREE'"
+              [disabled]="saving || hasActivePlan"
               (click)="onSubscribe('ANNUAL')"
             >
               {{
-                currentPlanType !== 'FREE'
-                  ? 'Ya tienes una membresía activa'
+                hasActivePlan && currentPlanType === 'ANNUAL'
+                  ? 'Ya tienes este plan'
+                  : hasActivePlan && currentPlanType !== 'ANNUAL'
+                  ? 'Ya tienes otro plan activo'
                   : saving && pendingPlan === 'ANNUAL'
                   ? 'Procesando...'
                   : 'Elegir plan anual'
@@ -112,6 +117,22 @@ import { UserProfile } from '../../../core/models/user-profile.model';
             Volver a mi perfil
           </a>
         </footer>
+      </section>
+
+      <!-- Sección de desuscripción -->
+      <section class="cancel-section" *ngIf="hasActivePlan">
+        <p class="cancel-text">
+          Ya tienes una membresía activa. Puedes cancelarla cuando quieras.
+        </p>
+
+        <button
+          type="button"
+          class="btn-secondary"
+          [disabled]="saving"
+          (click)="onUnsubscribe()"
+        >
+          {{ saving ? 'Procesando...' : 'Cancelar membresía' }}
+        </button>
       </section>
     </div>
   `,
@@ -326,6 +347,38 @@ import { UserProfile } from '../../../core/models/user-profile.model';
       text-decoration: underline;
     }
 
+    .cancel-section {
+      margin-top: 20px;
+      padding-top: 12px;
+      border-top: 1px solid #e5e5f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .cancel-text {
+      margin: 0;
+      font-size: 13px;
+      color: #555;
+    }
+
+    .btn-secondary {
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1px solid #d33;
+      background-color: #fff5f5;
+      color: #b30000;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-secondary:hover:enabled {
+      background-color: #ffe5e5;
+    }
+
+
     @media (max-width: 900px) {
       .membership-card {
         padding: 20px 18px 22px;
@@ -356,6 +409,8 @@ export class MembershipPageComponent implements OnInit {
   private membresiaService = inject(MembresiaService);
   private usuarioService = inject(UsuarioService);
 
+  private cd = inject(ChangeDetectorRef);
+
   loading = false;
   saving = false;
   errorMessage: string | null = null;
@@ -367,6 +422,10 @@ export class MembershipPageComponent implements OnInit {
 
   private currentUserId: number | null = null;
 
+  get hasActivePlan(): boolean {
+    return !!this.activeMembership && this.activeMembership.status === 'ACTIVE';
+  }
+  
   ngOnInit(): void {
     this.loading = true;
     this.errorMessage = null;
@@ -411,22 +470,29 @@ export class MembershipPageComponent implements OnInit {
         }
 
         this.loading = false;
+        this.cd.detectChanges();
       },
       error: (error) => {
         console.error('❌ Error al cargar membresía:', error);
         this.errorMessage = 'Error al cargar tu membresía. Intenta nuevamente.';
         this.loading = false;
+        this.cd.detectChanges();
       }
     });
   }
 
   onSubscribe(plan: Plan): void {
-    if (this.currentPlanType !== 'FREE') {
-    this.errorMessage = 'Ya tienes una membresía activa.';
-    return;
-    }
     if (!this.currentUserId) {
       this.errorMessage = 'No se pudo determinar el usuario actual.';
+      return;
+    }
+
+    if (this.hasActivePlan) {
+      return;
+    }
+
+    // si ya hay una request en curso, no duplicamos
+    if (this.saving) {
       return;
     }
 
@@ -435,17 +501,51 @@ export class MembershipPageComponent implements OnInit {
     this.errorMessage = null;
 
     this.membresiaService.create(this.currentUserId, plan, true).subscribe({
-      next: () => {
+      next: (created) => {
+        console.log('✅ Membresía creada:', created);
+        // refrescamos estado desde el backend
+        this.loadMembership();
         this.saving = false;
         this.pendingPlan = null;
-        this.loadMembership();
       },
       error: (error) => {
-        console.error('❌ Error al suscribirse a membresía:', error);
-        this.errorMessage = 'Ocurrió un error al activar tu membresía.';
+        console.error('❌ Error al crear membresía:', error);
+        this.errorMessage = 'No se pudo procesar tu membresía. Intenta nuevamente.';
         this.saving = false;
         this.pendingPlan = null;
       }
     });
   }
+
+  onUnsubscribe(): void {
+  if (!this.currentUserId || !this.activeMembership) {
+    this.errorMessage = 'No se encontró una membresía activa para cancelar.';
+    return;
+  }
+
+  // Evitar doble click
+  if (this.saving) return;
+
+  this.saving = true;
+  this.errorMessage = null;
+
+  const idUsuario = this.currentUserId;
+
+  this.membresiaService.cancelActive(idUsuario).subscribe({
+    next: (updated) => {
+      console.log('✅ Membresía cancelada:', updated);
+      this.loadMembership();
+      this.saving = false;
+      this.pendingPlan = null;
+      this.cd.detectChanges();
+    },
+    error: (error) => {
+      console.error('❌ Error al cancelar membresía:', error);
+      this.errorMessage = 'No se pudo cancelar tu membresía. Intenta nuevamente.';
+      this.saving = false;
+      this.pendingPlan = null;
+      this.cd.detectChanges();
+    }
+  });
+}
 }
